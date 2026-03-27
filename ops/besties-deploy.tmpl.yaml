@@ -48,7 +48,9 @@ resources:
     memory: 2Gi
     cpu: 100m
 
-# RWO PVC for Dataverse file storage (default /data). Empty storageClassName = cluster default StorageClass.
+# RWO PVC for Dataverse /data — correct for replicaCount: 1. GDCC K8s guide: use ReadWriteMany for /data (and
+# docroot) only for multi-instance Payara; with S3 (besties awsS3) local /data is partly temp/ingest. See
+# https://k8s-docs.gdcc.io/en/latest/day1/storage.html#application-server
 persistence:
   enabled: true
   mountPath: /data
@@ -82,6 +84,8 @@ internalSolr:
   enabled: true
   image: solr:8.11.2
   imagePullPolicy: IfNotPresent
+  # RWO matches GDCC: standalone Solr index — "ReadWriteOnce ... sufficient" (not SolrCloud yet).
+  # https://k8s-docs.gdcc.io/en/latest/day1/storage.html#index-server
   persistence:
     enabled: true
     size: 5Gi
