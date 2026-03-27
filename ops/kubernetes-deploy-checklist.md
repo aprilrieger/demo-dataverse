@@ -44,7 +44,18 @@ Create these **before** (or right after namespace exists) so the chart can mount
 
 **Actions → Deploy → Run workflow** (branch + environment). The job renders `ops/<environment>-deploy.yaml` from the `.tmpl` and runs `bin/helm_deploy`.
 
-## 5. Related docs
+## 5. After deploy: public URL (`siteUrl` / `fqdn`)
+
+The **gdcc/dataverse** image does **not** run this repo’s **`init.d/04-setdomain.sh`** unless you mount **`./init.d`** via the chart’s **`configMap`** (Compose does; default Helm values do not). Set the public hostname with **`dataverse_*`** env vars so **`init_2_configure.sh`** injects Payara system properties (see [Application image tunables](https://guides.dataverse.org/en/latest/container/app-image.html#tunables)):
+
+- **`dataverse_siteUrl`** — full public base URL, e.g. `https://demo-dataverse.notch8.cloud`
+- **`dataverse_fqdn`** — hostname only, e.g. `demo-dataverse.notch8.cloud`
+
+**`besties-deploy.tmpl.yaml`** includes these. If **`DATAVERSE_URL`** is a full `https://…` URL while a script expects **`http://${DATAVERSE_URL}/api`**, bootstrap curls can break; use **`localhost:8080`** for in-pod API access and keep the public URL in **`dataverse_siteUrl`**.
+
+If **`/`** still returns Dataverse “Page Not Found”, check **`https://<host>/api/info/version`**, pod logs for bootstrap errors, and the [Dataverse troubleshooting guide](https://guides.dataverse.org/en/latest/admin/troubleshooting.html).
+
+## 6. Related docs
 
 - **S3 + IAM + Secret shape:** [`ops/aws-s3-kubernetes-setup.md`](aws-s3-kubernetes-setup.md)  
 - **Superuser API token Secret (optional automation):** [`ops/dataverse-admin-api-key-kubernetes.md`](dataverse-admin-api-key-kubernetes.md)  

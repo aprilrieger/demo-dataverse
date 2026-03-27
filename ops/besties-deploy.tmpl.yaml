@@ -120,8 +120,15 @@ extraEnvVars:
   # Core name (dataverse.solr.core); Solr must have this core + Dataverse schema.
   - name: DATAVERSE_SOLR_CORE
     value: dataverse
+  # In-container API base for scripts that use http://${DATAVERSE_URL}/api (must be host:port, no scheme).
   - name: DATAVERSE_URL
+    value: localhost:8080
+  # Official image (init_2_configure.sh): dataverse_* env → Payara create-system-properties (dots from underscores).
+  # Without these, JSF often cannot resolve the public URL and "/" shows Dataverse "Page Not Found".
+  - name: dataverse_siteUrl
     value: https://demo-dataverse.notch8.cloud
+  - name: dataverse_fqdn
+    value: demo-dataverse.notch8.cloud
   - name: DATAVERSE_SERVICE_HOST
     value: demo-dataverse.notch8.cloud
   - name: hostname
