@@ -39,8 +39,22 @@ data:
       exit 1
     fi
 
+    # Bitnami/Apache solr zk upconfig only resolves -d under $SOLR_HOME/server/solr/configsets (mounted
+    # ConfigMap at /solr-conf is outside that tree, so the CLI ignores it and errors). Stage conf here first.
+    SOLR_HOME="$(cd "$(dirname "$SOLR_BIN")/.." && pwd)"
+    STAGING_REL="server/solr/configsets/_dataverse_zk_upload"
+    STAGING="${SOLR_HOME}/${STAGING_REL}"
+    rm -rf "${STAGING}"
+    mkdir -p "${STAGING}"
+    cp -aL "${CONF_DIR}/." "${STAGING}/"
+    if [[ ! -f "${STAGING}/solrconfig.xml" ]]; then
+      echo "solr-init: expected solrconfig.xml in ConfigMap mount ${CONF_DIR} (after copy: ${STAGING})" >&2
+      ls -la "${CONF_DIR}" >&2 || true
+      exit 1
+    fi
+
     echo "solr-init: uploading configset ${CONFIGSET} to ZK ${ZK}"
-    "$SOLR_BIN" zk upconfig -z "${ZK}" -n "${CONFIGSET}" -d "${CONF_DIR}"
+    (cd "${SOLR_HOME}" && "$SOLR_BIN" zk upconfig -z "${ZK}" -n "${CONFIGSET}" -d "${STAGING_REL}")
 
     echo "solr-init: checking collection ${COLLECTION}"
     LIST_JSON=$(curl -sfS "${AUTH[@]}" "${BASE}/solr/admin/collections?action=LIST")
