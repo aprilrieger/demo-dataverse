@@ -71,7 +71,23 @@ data:
     fi
 
     echo "solr-init: creating collection ${COLLECTION} (shards=${SHARDS} replicas=${RF})"
-    curl -sfS "${AUTH[@]}" \
-      "${BASE}/solr/admin/collections?action=CREATE&name=${COLLECTION}&collection.configName=${CONFIGSET}&numShards=${SHARDS}&replicationFactor=${RF}"
+    CREATE_URL="${BASE}/solr/admin/collections?action=CREATE&name=${COLLECTION}&collection.configName=${CONFIGSET}&numShards=${SHARDS}&replicationFactor=${RF}&wt=json"
+    CREATE_BODY="${TMPDIR:-/tmp}/solr-init-create-body.json"
+    HTTP_CODE=$(curl -sS "${AUTH[@]}" -o "${CREATE_BODY}" -w "%{http_code}" "${CREATE_URL}") || true
+    if [[ "${HTTP_CODE}" != "200" ]]; then
+      echo "solr-init: collection CREATE failed HTTP ${HTTP_CODE}" >&2
+      echo "solr-init: Solr response:" >&2
+      cat "${CREATE_BODY}" >&2 2>/dev/null || true
+      echo "solr-init: If you see unknown configset / ZK mismatch, ensure zkConnect matches Solr (often append /solr chroot for Bitnami)." >&2
+      exit 1
+    fi
+    if command -v jq >/dev/null 2>&1; then
+      STATUS=$(jq -r '.responseHeader.status // empty' "${CREATE_BODY}" 2>/dev/null || true)
+      if [[ -n "${STATUS}" && "${STATUS}" != "0" ]]; then
+        echo "solr-init: collection CREATE returned non-zero status in JSON" >&2
+        cat "${CREATE_BODY}" >&2
+        exit 1
+      fi
+    fi
     echo "solr-init: done"
 {{- end }}

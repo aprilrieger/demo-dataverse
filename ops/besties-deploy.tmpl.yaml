@@ -69,8 +69,8 @@ solrInit:
   enabled: true
   image: bitnamilegacy/solr:8.11.2-debian-11-r50
   imagePullPolicy: IfNotPresent
-  # Same as Solr pods’ SOLR_ZK_HOSTS (kubectl describe pod -n solr -l app.kubernetes.io/name=solr).
-  zkConnect: "solr-zookeeper-0.solr-zookeeper-headless.solr.svc.cluster.local:2181,solr-zookeeper-1.solr-zookeeper-headless.solr.svc.cluster.local:2181,solr-zookeeper-2.solr-zookeeper-headless.solr.svc.cluster.local:2181"
+  # Same hosts as SOLR_ZK_HOSTS + Bitnami ZK chroot /solr (omit /solr only if your Solr chart uses no chroot).
+  zkConnect: "solr-zookeeper-0.solr-zookeeper-headless.solr.svc.cluster.local:2181,solr-zookeeper-1.solr-zookeeper-headless.solr.svc.cluster.local:2181,solr-zookeeper-2.solr-zookeeper-headless.solr.svc.cluster.local:2181/solr"
   solrHttpBase: "http://solr.solr.svc.cluster.local:8983"
   collection: dataverse
   configSetName: dataverse_config

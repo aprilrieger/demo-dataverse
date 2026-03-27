@@ -126,5 +126,5 @@ Run your normal deploy (or `envsubst` + `helm upgrade`). Ensure **`DATAVERSE_SOL
 
 - **InitContainer fails on `solr zk`:** check **`solrInit.zkConnect`** in rendered values (chroot, DNS, port **2181**).  
 - **401 from Solr:** fix GitHub **`SOLR_ADMIN_*`** / values (**`solrInit.adminUser`** / **`adminPassword`**) or **`existingSecret`** keys, or disable Solr auth.  
-- **Collection create fails:** confirm enough Solr nodes for **`replicationFactor`** (e.g. 2 replicas need 2 Solr pods).  
+- **Collection CREATE returns HTTP 400:** the init script prints Solr’s JSON error body. Common causes: **ZK chroot** — Bitnami SolrCloud usually needs **`/solr`** at the end of **`zkConnect`** (same as **`hosts:2181/solr`**), or Solr cannot see the configset uploaded by **`zk upconfig`**. After fixing **`zkConnect`**, you may need to remove a wrongly placed ZK config path or bump the configset name once. Also confirm enough live Solr nodes for **`replicationFactor`** (try **`replicationFactor: 1`** if you only have one Solr pod).  
 - **Schema errors:** conf must match your **Dataverse** version.
