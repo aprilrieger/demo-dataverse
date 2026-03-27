@@ -127,6 +127,14 @@ extraEnvVars:
   # Core name (dataverse.solr.core); Solr must have this core + Dataverse schema.
   - name: DATAVERSE_SOLR_CORE
     value: dataverse
+  # Payara postboot: init_2_configure.sh only reads lowercase dataverse_* / doi_* (see gdcc image). It does NOT
+  # process DATAVERSE_SOLR_* — without these, Solr host can fall back to profile defaults (no user:pass) → 401.
+  - name: dataverse_solr_host
+    value: "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local"
+  - name: dataverse_solr_port
+    value: "8983"
+  - name: dataverse_solr_core
+    value: dataverse
   # In-cluster Dataverse HTTP base (for tooling that expects a full URL). If you mount compose-style init.d
   # that does http://${DATAVERSE_URL}/api, use host:port only (no scheme) instead.
   - name: DATAVERSE_URL
