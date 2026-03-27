@@ -47,7 +47,7 @@ data:
     mkdir -p "${STAGING}"
     if [[ -f "${CONF_DIR}/solr-conf.tgz" ]]; then
       echo "solr-init: extracting solr-conf.tgz into ${STAGING}"
-      tar xzf "${CONF_DIR}/solr-conf.tgz" -C "${STAGING}"
+      tar --warning=no-unknown-keyword -xzf "${CONF_DIR}/solr-conf.tgz" -C "${STAGING}" || tar xzf "${CONF_DIR}/solr-conf.tgz" -C "${STAGING}"
     else
       echo "solr-init: no solr-conf.tgz under ${CONF_DIR} — ConfigMap is still the old flat layout (kubectl --from-file=dir omits lang/)." >&2
       echo "solr-init: listing mount (expect a single solr-conf.tgz after ./ops/create-solr-conf-configmap.sh):" >&2

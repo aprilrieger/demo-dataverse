@@ -91,7 +91,7 @@ Requires Docker Compose v2 **with `depends_on: condition: service_completed_succ
 
 ### `config/` and `triggers/`
 
-- **`config/schema.xml`** — Solr schema used by **Docker Compose** (bind-mounted into **`coronawhy/solr`**). The image still provides **`solrconfig.xml`**, **`lang/`**, **`stopwords.txt`**, etc. For **Kubernetes `solrInit`**, build a **full** conf directory with **`ops/fetch-dataverse-solr-conf.sh`** (IQSS **`conf/solr`** from Git + merged Solr **8.11** **`_default`** resources + schema patch); use **`OVERLAY_REPO_SCHEMA=1`** to fold **`./config/schema.xml`** into that bundle. Details: **`ops/solr-init-setup.md`**.
+- **`config/schema.xml`** — Solr schema used by **Docker Compose** (bind-mounted into **`coronawhy/solr`**). The image still provides **`solrconfig.xml`**, **`lang/`**, **`stopwords.txt`**, etc. For **Kubernetes `solrInit`**, build a **full** conf directory with **`ops/fetch-dataverse-solr-conf.sh`** (IQSS **`conf/solr`** from Git + merged Solr **8.11** **`_default`** resources + **schema** and **solrconfig** patches for Bitnami Solr **8.11**); use **`OVERLAY_REPO_SCHEMA=1`** to fold **`./config/schema.xml`** into that bundle. Details: **`ops/solr-init-setup.md`**.
 - **`triggers/`** — SQL/Python helpers mounted where the compose file expects them.
 
 ### Helm / Kubernetes: deploy checklist
