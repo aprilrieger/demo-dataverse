@@ -4,17 +4,17 @@
 # Required:
 #   export DB_PASSWORD='...'              # Postgres (DATAVERSE_DB_* / POSTGRES_* / PGPASSWORD)
 #   export DOLLAR='$'                     # Keeps literal $ for any $-prefixed YAML if needed later
-# Optional Solr HTTP basic auth — values below use ${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@ (envsubst).
+# Solr HTTP basic auth: same GitHub Environment secrets for Dataverse env *and* solrInit (envsubst).
 #   export SOLR_ADMIN_USER='...'
 #   export SOLR_ADMIN_PASSWORD='...'      # if password contains @ : # etc., URL-encode or Solr URLs may break
 # Then:
 #   envsubst < ops/besties-deploy.tmpl.yaml > ops/besties-deploy.yaml
 #
-# GitHub Actions: Environment secrets SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD (same names as job env).
-# solrInit.zkConnect is set literally below (edit to match your ZK Service DNS + chroot; usually not a secret).
-# If Solr has no basic auth, leave both unset and replace the three Solr value lines to drop the user:pass@ prefix.
+# GitHub Actions: SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD (job env → envsubst → Helm values, including solrInit).
+# solrInit.zkConnect is literal below (edit for your ZK DNS + chroot).
+# If Solr has no basic auth: set both secrets empty and change Solr URL values + solrInit admin fields to drop user:pass@.
 #
-# Before first deploy with solrInit: ConfigMap + init Secret — see ops/solr-init-setup.md .
+# Before first deploy with solrInit: Solr conf ConfigMap — see ops/solr-init-setup.md .
 
 awsS3:
   enabled: true
@@ -77,11 +77,10 @@ solrInit:
   numShards: 1
   replicationFactor: 2
   confConfigMap: dataverse-besties-solr-conf
-  # K8s Secret with SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD (initContainer cannot read GitHub secrets).
-  # If Solr has no HTTP basic auth, set to "" and see ops/solr-init-setup.md .
-  existingSecret: dataverse-solr-init-auth
-  adminUser: ""
-  adminPassword: ""
+  # Same creds as extraEnvVars Solr URLs (envsubst); no separate init Secret.
+  existingSecret: ""
+  adminUser: "${SOLR_ADMIN_USER}"
+  adminPassword: "${SOLR_ADMIN_PASSWORD}"
   resources: {}
 
 # Payara/Dataverse — external Postgres + Solr. Create DB + role on the server first (quoted names if hyphenated);
@@ -107,13 +106,13 @@ extraEnvVars:
     value: $DB_PASSWORD
   - name: PGPASSWORD
     value: $DB_PASSWORD
-  # Solr: http://user:pass@host (see file header; GitHub SOLR_ADMIN_* secrets).
+  # Solr (same SOLR_ADMIN_* as solrInit; YAML anchor dedupes identical host:port lines).
   - name: SOLR_SERVICE_HOST
-    value: "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local:8983"
+    value: &solr_host_colon_port "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local:8983"
   - name: SOLR_SERVICE_PORT
     value: "8983"
   - name: SOLR_LOCATION
-    value: "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local:8983"
+    value: *solr_host_colon_port
   - name: DATAVERSE_SOLR_HOST
     value: "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local"
   - name: DATAVERSE_SOLR_PORT

@@ -10,10 +10,10 @@ Use this as the single entry point; each step links to or points at detailed doc
 |--------|---------|
 | `KUBECONFIG_FILE` | Base64-encoded kubeconfig for `helm`/`kubectl` (see deploy workflow). |
 | `DB_PASSWORD` | Postgres password; substituted into `ops/<env>-deploy.tmpl.yaml` via `envsubst`. |
-| `SOLR_ADMIN_USER` | Solr HTTP basic auth user (embedded in Solr URL lines in the tmpl). |
-| `SOLR_ADMIN_PASSWORD` | Solr HTTP basic auth password. |
+| `SOLR_ADMIN_USER` | Solr HTTP basic auth user (`extraEnvVars` Solr URLs and **`solrInit.adminUser`**). |
+| `SOLR_ADMIN_PASSWORD` | Solr HTTP basic auth password (**`solrInit.adminPassword`**). |
 
-The workflow substitutes `DB_PASSWORD` and `SOLR_ADMIN_*` into `ops/besties-deploy.tmpl.yaml` via `envsubst`. **`solrInit.zkConnect`** is committed literally in that file (edit if your ZooKeeper DNS/chroot differs) — no **`ZK_CONNECT`** secret.
+The workflow substitutes `DB_PASSWORD` and `SOLR_ADMIN_*` into `ops/besties-deploy.tmpl.yaml` via `envsubst` (one source for the app container and **`load-solr-config`**). **`solrInit.zkConnect`** is committed literally in that file (edit if your ZooKeeper DNS/chroot differs).
 
 ## 2. PostgreSQL (external cluster)
 
@@ -36,7 +36,7 @@ Create these **before** (or right after namespace exists) so the chart can mount
 |-----------------|-------------|-----|
 | **`aws-s3-credentials`** | `awsS3.enabled: true` in values (e.g. besties) | Full walkthrough: **[`ops/aws-s3-kubernetes-setup.md`](aws-s3-kubernetes-setup.md)** (`kubectl create secret generic …`, keys `credentials` + `config`). |
 | **`dataverse-admin-api-key`** (optional) | Only if you mount a superuser API token on the pod/Jobs | **[`ops/dataverse-admin-api-key-kubernetes.md`](dataverse-admin-api-key-kubernetes.md)** — chart does **not** require this for a basic deploy. |
-| **ConfigMap `dataverse-besties-solr-conf`** + **Secret `dataverse-solr-init-auth`** | **`solrInit`** is on for besties | Step-by-step: **[`ops/solr-init-setup.md`](solr-init-setup.md)** and **`ops/create-solr-conf-configmap.sh`**. |
+| **ConfigMap `dataverse-besties-solr-conf`** | **`solrInit`** is on for besties | **[`ops/solr-init-setup.md`](solr-init-setup.md)** and **`ops/create-solr-conf-configmap.sh`**. Solr admin creds come from GitHub **`SOLR_ADMIN_*`** via envsubst, not a cluster Secret. |
 
 **Namespace:** Match whatever you deploy with (default from workflow: `<repo-name>-<environment>`, e.g. `demo-dataverse-besties`).
 
@@ -48,6 +48,6 @@ Create these **before** (or right after namespace exists) so the chart can mount
 
 - **S3 + IAM + Secret shape:** [`ops/aws-s3-kubernetes-setup.md`](aws-s3-kubernetes-setup.md)  
 - **Superuser API token Secret (optional automation):** [`ops/dataverse-admin-api-key-kubernetes.md`](dataverse-admin-api-key-kubernetes.md)  
-- **Solr init (`solrInit`, ZK, ConfigMap, init Secret):** [`ops/solr-init-setup.md`](solr-init-setup.md)  
+- **Solr init (`solrInit`, ZK, ConfigMap):** [`ops/solr-init-setup.md`](solr-init-setup.md)  
 - **Helm values template (Postgres, Solr URLs, ingress, S3, solrInit):** [`ops/besties-deploy.tmpl.yaml`](besties-deploy.tmpl.yaml) (copy/adapt for other env names)  
 - **README (overview, Compose vs Helm):** [`README.md`](../README.md) (Helm / Kubernetes sections)

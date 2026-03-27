@@ -55,20 +55,13 @@ kubectl create configmap dataverse-besties-solr-conf \
 
 ---
 
-## 4. Secret for Solr HTTP basic auth (initContainer)
+## 4. Solr HTTP basic auth (besties)
 
-If Bitnami Solr has **`SOLR_ENABLE_AUTHENTICATION=yes`**, the init job must call Solr with the same user/password. Create a Secret **in the Dataverse namespace** with keys **`SOLR_ADMIN_USER`** and **`SOLR_ADMIN_PASSWORD`** (match **`solrInit.existingSecret`** in values, default **`dataverse-solr-init-auth`**):
+**Besties** bakes **`SOLR_ADMIN_USER`** / **`SOLR_ADMIN_PASSWORD`** into Helm values with **`envsubst`** (same GitHub Environment secrets as the main container’s Solr URL env vars). **`solrInit.adminUser`** / **`adminPassword`** use those placeholders; **`solrInit.existingSecret`** is empty, so no **`dataverse-solr-init-auth`** Secret is required.
 
-```bash
-kubectl create secret generic dataverse-solr-init-auth \
-  --namespace=demo-dataverse-besties \
-  --from-literal=SOLR_ADMIN_USER='your-solr-admin-user' \
-  --from-literal=SOLR_ADMIN_PASSWORD='your-solr-admin-password'
-```
+For **other** environments, you can instead set **`solrInit.existingSecret`** to a cluster Secret name (keys **`SOLR_ADMIN_USER`**, **`SOLR_ADMIN_PASSWORD`**) and leave **`adminUser`** / **`adminPassword`** empty.
 
-Use the **same** credentials you already put in GitHub **`SOLR_ADMIN_USER`** / **`SOLR_ADMIN_PASSWORD`** for Dataverse env (init runs in-cluster and does not see GitHub secrets).
-
-If Solr has **no** HTTP basic auth, set **`solrInit.existingSecret: ""`** in **`ops/besties-deploy.tmpl.yaml`** (or your values overlay) and remove or ignore this Secret.
+If Solr has **no** HTTP basic auth, use empty **`SOLR_ADMIN_*`** in CI and adjust Solr URL values in the tmpl (drop **`user:pass@`**) and set **`solrInit.adminUser`** / **`adminPassword`** to empty strings.
 
 ---
 
@@ -81,6 +74,6 @@ Run your normal deploy (or `envsubst` + `helm upgrade`). Ensure **`DATAVERSE_SOL
 ## Troubleshooting
 
 - **InitContainer fails on `solr zk`:** check **`solrInit.zkConnect`** in rendered values (chroot, DNS, port **2181**).  
-- **401 from Solr:** fix Secret keys / Bitnami **`SOLR_ADMIN_*`** or disable Solr auth and clear **`existingSecret`**.  
+- **401 from Solr:** fix GitHub **`SOLR_ADMIN_*`** / values (**`solrInit.adminUser`** / **`adminPassword`**) or **`existingSecret`** keys, or disable Solr auth.  
 - **Collection create fails:** confirm enough Solr nodes for **`replicationFactor`** (e.g. 2 replicas need 2 Solr pods).  
 - **Schema errors:** conf must match your **Dataverse** version.
