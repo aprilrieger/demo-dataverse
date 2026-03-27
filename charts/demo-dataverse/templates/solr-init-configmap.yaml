@@ -39,12 +39,19 @@ data:
       exit 1
     fi
 
-    # zk upconfig -d does not reliably use the mounted ConfigMap path; copy to a writable dir first.
+    # zk upconfig -d does not reliably use the mounted ConfigMap path; stage to /tmp first.
     # Do not stage under $SOLR_HOME/server/solr/configsets (not writable when runAsNonRoot uid 1001).
+    # ConfigMap ships solr-conf.tgz (kubectl --from-file=DIR omits subdirs like lang/).
     STAGING="/tmp/dataverse_zk_conf"
     rm -rf "${STAGING}"
     mkdir -p "${STAGING}"
-    cp -aL "${CONF_DIR}/." "${STAGING}/"
+    if [[ -f "${CONF_DIR}/solr-conf.tgz" ]]; then
+      echo "solr-init: extracting solr-conf.tgz into ${STAGING}"
+      tar xzf "${CONF_DIR}/solr-conf.tgz" -C "${STAGING}"
+    else
+      echo "solr-init: warning: no solr-conf.tgz — flat ConfigMap; lang/ will be missing. Rebuild ConfigMap with ops/create-solr-conf-configmap.sh" >&2
+      cp -aL "${CONF_DIR}/." "${STAGING}/"
+    fi
     UPLOAD_DIR=""
     if [[ -f "${STAGING}/solrconfig.xml" ]]; then
       UPLOAD_DIR="${STAGING}"
@@ -56,6 +63,17 @@ data:
       echo "solr-init: Example: docker cp solr:/var/solr/data/dataverse/conf ./dv-solr-conf && ./ops/create-solr-conf-configmap.sh \"\$(pwd)/dv-solr-conf\" demo-dataverse-besties" >&2
       echo "solr-init: Staged files under ${STAGING}:" >&2
       find "${STAGING}" -type f 2>/dev/null | sort >&2 || ls -laR "${STAGING}" >&2 || true
+      exit 1
+    fi
+
+    if [[ ! -f "${UPLOAD_DIR}/stopwords.txt" ]]; then
+      echo "solr-init: missing stopwords.txt in staged conf (ConfigMap incomplete)." >&2
+      echo "solr-init: Rebuild: ./ops/fetch-dataverse-solr-conf.sh && ./ops/create-solr-conf-configmap.sh \"\$(pwd)/dv-solr-conf\" <namespace> — see ops/solr-init-setup.md §2." >&2
+      find "${UPLOAD_DIR}" -type f 2>/dev/null | sort | head -60 >&2 || true
+      exit 1
+    fi
+    if [[ ! -f "${UPLOAD_DIR}/lang/stopwords_en.txt" ]]; then
+      echo "solr-init: missing lang/stopwords_en.txt — ConfigMap must be solr-conf.tgz from create-solr-conf-configmap.sh (not kubectl --from-file=dir)." >&2
       exit 1
     fi
 

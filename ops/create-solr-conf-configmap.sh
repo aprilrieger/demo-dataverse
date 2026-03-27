@@ -26,11 +26,22 @@ if [[ ! -f "${CONF_DIR}/stopwords.txt" ]]; then
   echo "error: missing stopwords.txt — schema.xml references it; run ./ops/merge-solr811-default-resources.sh \"${CONF_DIR}\"" >&2
   exit 1
 fi
+if [[ ! -f "${CONF_DIR}/lang/stopwords_en.txt" ]]; then
+  echo "error: missing lang/stopwords_en.txt — run ./ops/fetch-dataverse-solr-conf.sh (merge step)" >&2
+  exit 1
+fi
+
+# kubectl create configmap --from-file=DIR only adds *top-level* files; it skips subdirs, so lang/
+# never reaches the cluster. Pack the full tree as one .tgz; load-solr-init untars it (see chart).
+TMP_TAR="$(mktemp)"
+cleanup() { rm -f "${TMP_TAR}"; }
+trap cleanup EXIT
+COPYFILE_DISABLE=1 tar czf "${TMP_TAR}" -C "${CONF_DIR}" .
 
 kubectl create configmap "$NAME" \
   --namespace="$NAMESPACE" \
-  --from-file="$CONF_DIR" \
+  --from-file=solr-conf.tgz="${TMP_TAR}" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-echo "ConfigMap $NAME applied in namespace $NAMESPACE"
-echo "Verify: kubectl describe configmap \"$NAME\" -n \"$NAMESPACE\" (Data keys); dotted names break jsonpath, e.g. {.data.solrconfig.xml}."
+echo "ConfigMap $NAME applied in namespace $NAMESPACE (binary key solr-conf.tgz — full tree including lang/)"
+echo "Verify: kubectl get configmap \"$NAME\" -n \"$NAMESPACE\" -o jsonpath='{.binaryData}' | head -c 80; echo"

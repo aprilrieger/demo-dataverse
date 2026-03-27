@@ -84,19 +84,22 @@ See **[Dataverse Solr prerequisites](https://guides.dataverse.org/en/latest/inst
 
 ## 3. Kubernetes ConfigMap `dataverse-besties-solr-conf`
 
-Point at the **full** directory produced by **`fetch-dataverse-solr-conf.sh`** (typically **`dv-solr-conf/`** — gitignored). **`kubectl create configmap --from-file=`** turns each file into a ConfigMap data key (including **`lang/stopwords_en.txt`**-style paths when present).
+Point at the **full** directory produced by **`fetch-dataverse-solr-conf.sh`** (typically **`dv-solr-conf/`** — gitignored).
+
+**Important:** **`kubectl create configmap --from-file=/path/to/dir`** only adds **top-level** files in that directory; it **does not recurse** into **`lang/`** (and other subdirs), so Solr will fail with **`Can't find resource 'lang/stopwords_en.txt'`**. **`create-solr-conf-configmap.sh`** therefore packs the whole tree as **`solr-conf.tgz`** (single ConfigMap key, **`binaryData`**) and the Helm **`solr-init`** script untars it before **`zk upconfig`**.
 
 ```bash
 chmod +x ops/create-solr-conf-configmap.sh
 ./ops/create-solr-conf-configmap.sh "$(pwd)/dv-solr-conf" demo-dataverse-besties
 ```
 
-Or manually:
+Or manually (equivalent tarball):
 
 ```bash
+( cd /absolute/path/to/dv-solr-conf && COPYFILE_DISABLE=1 tar czf /tmp/solr-conf.tgz . )
 kubectl create configmap dataverse-besties-solr-conf \
   --namespace=demo-dataverse-besties \
-  --from-file=/absolute/path/to/dv-solr-conf \
+  --from-file=solr-conf.tgz=/tmp/solr-conf.tgz \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
@@ -122,5 +125,5 @@ Run your normal deploy (or `envsubst` + `helm upgrade`). Ensure **`DATAVERSE_SOL
 
 - **InitContainer fails on `solr zk`:** check **`solrInit.zkConnect`** in rendered values (chroot, DNS, port **2181**).  
 - **401 from Solr:** fix GitHub **`SOLR_ADMIN_*`** / values (**`solrInit.adminUser`** / **`adminPassword`**) or **`existingSecret`** keys, or disable Solr auth.  
-- **Collection CREATE returns HTTP 400:** the init script prints Solr’s JSON error body. **`Can't find resource 'stopwords.txt'`** (or other **`lang/`** files) → re-run **`./ops/fetch-dataverse-solr-conf.sh`** (or **`./ops/merge-solr811-default-resources.sh "$(pwd)/dv-solr-conf"`**) and re-apply the ConfigMap. **`analyzer/tokenizer: missing mandatory attribute 'class'`** → run **`./ops/patch-dataverse-schema-solr811.sh`** on **`schema.xml`**. **ZK chroot** — Bitnami usually needs **`/solr`** on **`zkConnect`**. **Replicas** — try **`replicationFactor: 1`** if nodes are insufficient.  
+- **Collection CREATE returns HTTP 400:** the init script prints Solr’s JSON error body. **`Can't find resource 'stopwords.txt'`** or **`lang/stopwords_en.txt`** → if you built the ConfigMap with **`kubectl --from-file=dv-solr-conf`**, rebuild with **`./ops/create-solr-conf-configmap.sh`** (tarball). Otherwise re-run **`./ops/fetch-dataverse-solr-conf.sh`** (or **`./ops/merge-solr811-default-resources.sh "$(pwd)/dv-solr-conf"`**) and re-apply the ConfigMap. **`analyzer/tokenizer: missing mandatory attribute 'class'`** → run **`./ops/patch-dataverse-schema-solr811.sh`** on **`schema.xml`**. **ZK chroot** — Bitnami usually needs **`/solr`** on **`zkConnect`**. **Replicas** — try **`replicationFactor: 1`** if nodes are insufficient. If a broken **`dataverse`** collection was created with a bad configset, delete it in Solr (or use a new **`configSetName`**) after fixing ZK.  
 - **Schema errors:** conf must match your **Dataverse** version.
