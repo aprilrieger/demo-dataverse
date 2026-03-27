@@ -48,7 +48,8 @@ spec:
         - name: solr
           image: {{ .Values.internalSolr.image | quote }}
           imagePullPolicy: {{ .Values.internalSolr.imagePullPolicy }}
-          args: ["solr-precreate", "dataverse", "dv"]
+          # precreate-core copies CONFIG_SOURCE as a path; "dv" alone is cwd-relative → cp: cannot stat 'dv/'.
+          args: ["solr-precreate", "dataverse", "/opt/solr/server/solr/configsets/dv"]
           ports:
             - containerPort: 8983
               name: solr-http
