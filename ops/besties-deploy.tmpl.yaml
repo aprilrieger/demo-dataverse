@@ -48,6 +48,14 @@ resources:
     memory: 2Gi
     cpu: 100m
 
+# RWO PVC for Dataverse file storage (default /data). Empty storageClassName = cluster default StorageClass.
+persistence:
+  enabled: true
+  mountPath: /data
+  size: 20Gi
+  accessMode: ReadWriteOnce
+  storageClassName: ""
+
 ingress:
   enabled: true
   className: nginx-ingress
@@ -75,7 +83,9 @@ internalSolr:
   image: solr:8.11.2
   imagePullPolicy: IfNotPresent
   persistence:
-    enabled: false
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
   resources: {}
 
 # Wait for in-cluster Solr core ping before Payara (standalone). For external SolrCloud, set internalSolr.enabled: false,
