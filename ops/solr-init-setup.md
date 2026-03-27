@@ -22,6 +22,25 @@ zk-0.zk-hs.solr.svc.cluster.local:2181,zk-1.zk-hs.solr.svc.cluster.local:2181,zk
 
 Replace hostnames with your cluster’s ZooKeeper Service DNS names and ports. In **besties**, update **`zkConnect`** under **`solrInit`** in **`ops/besties-deploy.tmpl.yaml`**.
 
+### If you see `UnknownHostException: zk-0.zk-hs.solr.svc.cluster.local`
+
+The value in git is an **example**, not your real ZK. Find the string your Solr deployment already uses (it must be identical):
+
+1. **From a Solr pod** (namespace and label set vary by chart):
+
+   ```bash
+   kubectl get pods -n solr -l app.kubernetes.io/name=solr
+   kubectl exec -n solr -it statefulset/YOUR_SOLR_STATEFULSET -- printenv | grep -i zk
+   ```
+
+   Look for variables like **`SOLR_ZK_HOSTS`**, **`ZK_HOST`**, **`ZOO_SERVERS`**, or **`SOLR_HOST`**-style ZK lists (Bitnami often sets **`SOLR_ZK_HOSTS`** or embeds ZK in **`SOLR_JAVA_MEM`** / start scripts — check **`kubectl describe pod`** and the Solr Helm values you used).
+
+2. **From ZooKeeper Services**: list ZK-related Services and StatefulSets, then build **`host:2181`** entries (use the **headless** Service DNS for StatefulSet pods: **`pod-name.headless-service.namespace.svc.cluster.local`**).
+
+3. **Chroot**: if Solr uses a ZK chroot (e.g. **`/solr`**), append it once at the end of the whole string: **`host1:2181,host2:2181/solr`**.
+
+If your Solr is **standalone** (no ZooKeeper), **`solr zk upconfig`** / SolrCloud init is the wrong model — turn off **`solrInit`** and manage the core with your Solr chart instead.
+
 ---
 
 ## 2. Solr `conf/` directory (Dataverse release)
