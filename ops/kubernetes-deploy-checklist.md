@@ -51,11 +51,48 @@ The **gdcc/dataverse** image does **not** run this repo’s **`init.d/04-setdoma
 - **`dataverse_siteUrl`** — full public base URL, e.g. `https://demo-dataverse.notch8.cloud`
 - **`dataverse_fqdn`** — hostname only, e.g. `demo-dataverse.notch8.cloud`
 
-**`besties-deploy.tmpl.yaml`** includes these. If **`DATAVERSE_URL`** is a full `https://…` URL while a script expects **`http://${DATAVERSE_URL}/api`**, bootstrap curls can break; use **`localhost:8080`** for in-pod API access and keep the public URL in **`dataverse_siteUrl`**.
+**`besties-deploy.tmpl.yaml`** includes these. **`DATAVERSE_URL`** is set to the in-cluster Service URL (e.g. **`http://demo-dataverse-besties.demo-dataverse-besties.svc.cluster.local:80`**) for consistency with **`configbaker`** Jobs. Keep the **browser-facing** URL in **`dataverse_siteUrl`**. If you mount compose **`init.d`** scripts that build **`http://${DATAVERSE_URL}/api`**, use **`host:port` without a scheme** for **`DATAVERSE_URL`** instead.
 
-If **`/`** still returns Dataverse “Page Not Found”, check **`https://<host>/api/info/version`**, pod logs for bootstrap errors, and the [Dataverse troubleshooting guide](https://guides.dataverse.org/en/latest/admin/troubleshooting.html).
+If **`/`** still returns Dataverse “Page Not Found” **after** migrations have run, the database often has **no root Dataverse** yet. That is normal for a wiped DB until you run bootstrap (see **§6**).
 
-## 6. Related docs
+## 6. Empty DB: application bootstrap (`gdcc/configbaker`)
+
+**Docker Compose** runs this automatically: service **`dev_bootstrap`** uses **`gdcc/configbaker:${VERSION}`** with **`bootstrap.sh dev`** and **`DATAVERSE_URL=http://dataverse:8080`** (see **`docker-compose.yml`**). That creates the **root Dataverse**, default metadata, the **`dataverseAdmin`** user (**password `admin1`** unless your image overrides it), FAKE DOI defaults, etc.
+
+**Helm / Kubernetes** does **not** run configbaker for you. After deploy, **`/api/info/version`** returns **200**, and Solr/DB are healthy, run the **same** image and command once from the cluster, with **`DATAVERSE_URL`** set to the **in-cluster Service URL** for the Dataverse Deployment (not the public ingress hostname). Use the **same tag** as **`gdcc/dataverse`** (e.g. **`6.10.1-noble-r0`**).
+
+```bash
+kubectl -n demo-dataverse-besties get svc   # pick the Service that fronts Payara
+```
+
+Example **`Job`** (edit **namespace**, **image tag**, and **`DATAVERSE_URL`** host to match your Service):
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dataverse-bootstrap-dev
+  namespace: demo-dataverse-besties
+spec:
+  ttlSecondsAfterFinished: 86400
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: configbaker
+          image: gdcc/configbaker:6.10.1-noble-r0
+          command: ["bootstrap.sh", "dev"]
+          env:
+            - name: DATAVERSE_URL
+              value: "http://demo-dataverse-besties.demo-dataverse-besties.svc.cluster.local:80"
+            - name: TIMEOUT
+              value: "20m"
+```
+
+Watch: **`kubectl logs -n demo-dataverse-besties job/dataverse-bootstrap-dev -f`**. On success, **`/`** should load and you can sign in as **`dataverseAdmin`**. Re-running bootstrap on a **non-empty** production DB is unsafe; this is for **fresh** or **dev-style** installs.
+
+## 7. Related docs
 
 - **S3 + IAM + Secret shape:** [`ops/aws-s3-kubernetes-setup.md`](aws-s3-kubernetes-setup.md)  
 - **Superuser API token Secret (optional automation):** [`ops/dataverse-admin-api-key-kubernetes.md`](dataverse-admin-api-key-kubernetes.md)  
