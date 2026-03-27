@@ -42,6 +42,20 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      # Optional mail — secrets + Environment variables (see ops/besties-deploy.tmpl.yaml header).
+      SYSTEM_EMAIL: ${{ secrets.SYSTEM_EMAIL }}
+      NO_REPLY_EMAIL: ${{ secrets.NO_REPLY_EMAIL }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      MAIL_SMTP_PASSWORD: ${{ secrets.MAIL_SMTP_PASSWORD }}
+      SMTP_ADDRESS: ${{ vars.SMTP_ADDRESS }}
+      SMTP_USER_NAME: ${{ vars.SMTP_USER_NAME }}
+      SMTP_PORT: ${{ vars.SMTP_PORT }}
+      SOCKET_PORT: ${{ vars.SOCKET_PORT }}
+      SMTP_AUTH: ${{ vars.SMTP_AUTH }}
+      SMTP_STARTTLS: ${{ vars.SMTP_STARTTLS }}
+      SMTP_TYPE: ${{ vars.SMTP_TYPE }}
+      SMTP_ENABLED: ${{ vars.SMTP_ENABLED }}
+      SMTP_DOMAIN: ${{ vars.SMTP_DOMAIN }}
       # Bumped every workflow run so the Deployment pod template changes and Kubernetes rolls pods even when
       # image.tag and the rest of values are identical (otherwise `helm upgrade` can "succeed" with no rollout).
       GITHUB_RUN_ID: ${{ github.run_id }}
@@ -68,6 +82,12 @@ jobs:
         run: |
           set -e
           echo "$KUBECONFIG_FILE" | base64 -d > "$KUBECONFIG"
+          export SMTP_PORT="${SMTP_PORT:-25}"
+          export SOCKET_PORT="${SOCKET_PORT:-${SMTP_PORT}}"
+          export SMTP_PASSWORD="${SMTP_PASSWORD:-${MAIL_SMTP_PASSWORD:-}}"
+          if [ -z "${NO_REPLY_EMAIL:-}" ] && [ -n "${SMTP_DOMAIN:-}" ]; then
+            export NO_REPLY_EMAIL="noreply@${SMTP_DOMAIN}"
+          fi
           DOLLAR=$ envsubst < "ops/${{ inputs.environment }}-deploy.tmpl.yaml" > "ops/${{ inputs.environment }}-deploy.yaml"
           REL='${{ inputs.k8s_release_name }}'
           NS='${{ inputs.k8s_namespace }}'
@@ -87,6 +107,12 @@ jobs:
         run: |
           set -e
           echo "$KUBECONFIG_FILE" | base64 -d > "$KUBECONFIG"
+          export SMTP_PORT="${SMTP_PORT:-25}"
+          export SOCKET_PORT="${SOCKET_PORT:-${SMTP_PORT}}"
+          export SMTP_PASSWORD="${SMTP_PASSWORD:-${MAIL_SMTP_PASSWORD:-}}"
+          if [ -z "${NO_REPLY_EMAIL:-}" ] && [ -n "${SMTP_DOMAIN:-}" ]; then
+            export NO_REPLY_EMAIL="noreply@${SMTP_DOMAIN}"
+          fi
           DOLLAR=$ envsubst < "ops/${{ inputs.environment }}-deploy.tmpl.yaml" > "ops/${{ inputs.environment }}-deploy.yaml"
           REL='${{ inputs.k8s_release_name }}'
           NS='${{ inputs.k8s_namespace }}'

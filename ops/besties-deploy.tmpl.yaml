@@ -6,6 +6,9 @@
 #   export DOLLAR='$'                     # Keeps literal $ for any $-prefixed YAML if needed later
 # Optional CI:
 #   export GITHUB_RUN_ID='...'            # pod rollout nonce (Actions sets this automatically)
+# Mail: non-secret SMTP_* + script envs are literal in extraEnvVars below (SendGrid / besties).
+# Secrets via envsubst: SMTP_PASSWORD, SYSTEM_EMAIL; optional SMTP_AUTH (empty = rely on SMTP_TYPE=plain).
+# Legacy MAIL_SMTP_PASSWORD is merged into SMTP_PASSWORD in the deploy workflow if SMTP_PASSWORD is unset.
 # Then:
 #   envsubst < ops/besties-deploy.tmpl.yaml > ops/besties-deploy.yaml
 #
@@ -111,6 +114,10 @@ solrInit:
   adminPassword: ""
   resources: {}
 
+# Mount init.d/010-mailrelay-set.sh (compose-compatible). Requires system_email (and related env) to do work.
+mail:
+  enabled: true
+
 # Payara/Dataverse — external Postgres + Solr. Create DB + role on the server first (quoted names if hyphenated);
 # see ops/kubernetes-deploy-checklist.md — error "database \"demo-dataverse\" does not exist" means DB not created.
 extraEnvVars:
@@ -183,6 +190,45 @@ extraEnvVars:
     value: FK2/
   - name: INIT_SCRIPTS_FOLDER
     value: /opt/payara/init.d
+  # Payara JavaMail + :SystemEmail (init.d/010-mailrelay-set.sh).
+  # Literal SMTP_* (override via GitHub Environment if you reintroduce envsubst for these keys).
+  - name: SMTP_ADDRESS
+    value: "smtp.sendgrid.net"
+  - name: SMTP_USER_NAME
+    value: "apikey"
+  - name: SMTP_TYPE
+    value: "plain"
+  - name: SMTP_STARTTLS
+    value: "true"
+  - name: SMTP_PORT
+    value: "587"
+  - name: SMTP_ENABLED
+    value: "true"
+  - name: SMTP_DOMAIN
+    value: "demo-dataverse.notch8.cloud"
+  # Script reads these names (aligned with SMTP_* above).
+  - name: system_email
+    value: "${SYSTEM_EMAIL}"
+  - name: mailhost
+    value: "smtp.sendgrid.net"
+  - name: mailuser
+    value: "apikey"
+  - name: no_reply_email
+    value: "noreply@demo-dataverse.notch8.cloud"
+  - name: smtp_password
+    value: "${SMTP_PASSWORD}"
+  - name: smtp_port
+    value: "587"
+  - name: socket_port
+    value: "587"
+  - name: smtp_auth
+    value: "${SMTP_AUTH}"
+  - name: smtp_starttls
+    value: "true"
+  - name: smtp_type
+    value: "plain"
+  - name: smtp_enabled
+    value: "true"
 
 # gdcc/configbaker after install (post-install hook). Same tag as image.tag above.
 # Does not run on `helm upgrade`. After the DB is bootstrapped once, you may set enabled: false to avoid

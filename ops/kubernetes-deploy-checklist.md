@@ -10,6 +10,26 @@ Use this as the single entry point; each step links to or points at detailed doc
 |--------|---------|
 | `KUBECONFIG_FILE` | Base64-encoded kubeconfig for `helm`/`kubectl` (see deploy workflow). |
 | `DB_PASSWORD` | Postgres password; substituted into `ops/<env>-deploy.tmpl.yaml` via `envsubst`. |
+| `SYSTEM_EMAIL` | Installation contact for Dataverse `:SystemEmail` (required for the mail init script to run). |
+| `NO_REPLY_EMAIL` | Optional override for the JavaMail **from** address; if unset and **`SMTP_DOMAIN`** is set, the workflow sets `noreply@` plus that domain. |
+| `SMTP_PASSWORD` | SendGrid (or other SMTP) password — for SendGrid use your **API key**. Optional legacy name **`MAIL_SMTP_PASSWORD`** is used when **`SMTP_PASSWORD`** is empty. |
+
+**Environment variables** (same GitHub Environment): **`SMTP_ADDRESS`**, **`SMTP_USER_NAME`** (SendGrid: `apikey`), **`SMTP_PORT`**, **`SMTP_STARTTLS`**, **`SMTP_TYPE`** (`plain` implies SMTP AUTH if **`SMTP_AUTH`** is unset), **`SMTP_ENABLED`** (`false` skips mail init), **`SMTP_DOMAIN`** (for default **`NO_REPLY_EMAIL`**), optional **`SMTP_AUTH`**, **`SOCKET_PORT`** (defaults to **`SMTP_PORT`** in the workflow if unset).
+
+**SendGrid example (GitHub Environment):**
+
+| Kind | Name | Value |
+|------|------|--------|
+| Variable | `SMTP_ADDRESS` | `smtp.sendgrid.net` |
+| Variable | `SMTP_USER_NAME` | `apikey` |
+| Variable | `SMTP_TYPE` | `plain` |
+| Variable | `SMTP_STARTTLS` | `true` |
+| Variable | `SMTP_PORT` | `587` |
+| Variable | `SMTP_ENABLED` | `true` |
+| Variable | `SMTP_DOMAIN` | `demo-dataverse.notch8.cloud` |
+| Secret | `SMTP_PASSWORD` | SendGrid API key |
+| Secret | `SYSTEM_EMAIL` | Same domain or team address you verified in SendGrid |
+| Secret | `NO_REPLY_EMAIL` | Optional; e.g. `noreply@demo-dataverse.notch8.cloud` (otherwise derived from **`SMTP_DOMAIN`**) |
 
 **Besties** uses in-chart **standalone Solr** (**`internalSolr.enabled: true`**) with **no HTTP basic auth** — you do **not** need **`SOLR_ADMIN_*`** secrets for that layout. For **external SolrCloud** with basic auth, set **`SOLR_ADMIN_USER`** / **`SOLR_ADMIN_PASSWORD`** (or **`solrInit.existingSecret`**) and see **[`ops/solr-init-setup.md`](solr-init-setup.md)**.
 

@@ -1,4 +1,4 @@
-{{- if .Values.configMap.enabled }}
+{{- if or .Values.configMap.enabled .Values.mail.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,5 +6,12 @@ metadata:
   labels:
     {{- include "demo-dataverse.labels" . | nindent 4 }}
 data:
+  {{- if .Values.configMap.enabled }}
   {{- toYaml .Values.configMap.data | nindent 2 }}
+  {{- end }}
+  {{- if .Values.mail.enabled }}
+  {{- $mailScript := .Files.Get "files/010-mailrelay-set.sh" | trim }}
+  010-mailrelay-set.sh: |
+{{- $mailScript | nindent 4 }}
+  {{- end }}
 {{- end }}

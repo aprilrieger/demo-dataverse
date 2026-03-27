@@ -1,9 +1,11 @@
 #!/bin/bash
 
-# Setup mail relay
+# Setup mail relay (compose-compatible; mounted when values.mail.enabled).
 # https://guides.dataverse.org/en/latest/developers/troubleshooting.html
 #
-# smtp_enabled / smtp_type=plain — same behavior as charts/demo-dataverse/files/010-mailrelay-set.sh
+# smtp_enabled: false|0|no skips this script (GitHub vars SMTP_ENABLED).
+# smtp_type=plain implies SMTP AUTH after STARTTLS if smtp_auth is unset (Rails-style).
+# smtp_auth / smtp_starttls: true|1|yes when set explicitly.
 case "${smtp_enabled}" in
     false|0|no|NO|False) exit 0 ;;
 esac

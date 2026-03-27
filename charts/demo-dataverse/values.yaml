@@ -137,6 +137,13 @@ configMap:
   #     #!/bin/sh
   #     echo ok
 
+# Mount compose-compatible mail init script (010-mailrelay-set.sh) under configMap.mountPath.
+# Pod env (from extraEnvVars): system_email, mailhost, mailuser, no_reply_email, smtp_password, smtp_port,
+# socket_port, smtp_auth, smtp_starttls, smtp_type, smtp_enabled — often mapped from SMTP_* in ops/*.tmpl.yaml.
+# Payara ADMIN_USER / PASSWORD_FILE come from the gdcc image. If system_email is unset, the script no-ops.
+mail:
+  enabled: false
+
 # Escape hatch: mount Secrets, extra PVCs, projected volumes, or host paths (compose-style /secrets).
 # For nested paths from a Secret, use a projected volume:
 # volumes:

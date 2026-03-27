@@ -20,6 +20,12 @@ if [[ -z "${DB_PASSWORD:-}" ]]; then
 fi
 export DOLLAR="${DOLLAR:-\$}"
 export GITHUB_RUN_ID="${GITHUB_RUN_ID:-local}"
+export SMTP_PORT="${SMTP_PORT:-25}"
+export SOCKET_PORT="${SOCKET_PORT:-${SMTP_PORT}}"
+export SMTP_PASSWORD="${SMTP_PASSWORD:-${MAIL_SMTP_PASSWORD:-}}"
+if [[ -z "${NO_REPLY_EMAIL:-}" && -n "${SMTP_DOMAIN:-}" ]]; then
+  export NO_REPLY_EMAIL="noreply@${SMTP_DOMAIN}"
+fi
 
 if ! command -v envsubst >/dev/null 2>&1; then
   echo "error: envsubst not found (e.g. brew install gettext)" >&2
