@@ -45,7 +45,13 @@ If your Solr is **standalone** (no ZooKeeper), **`solr zk upconfig`** / SolrClou
 
 ## 2. Solr `conf/` directory (Dataverse release)
 
-You need the **official** Solr files for your Dataverse version: at minimum **`solrconfig.xml`** and **`schema.xml`** (for IQSS **v6.10.1** the Git tree is exactly three files under **`conf/solr/`** — no separate **`lang/`** tree in-repo).
+### Why Docker Compose works but **`solrInit`** needs a fatter directory
+
+In **this repo’s Compose** setup, **`coronawhy/solr`** already has a **full core layout** on disk inside the image (and under the named volume): **`solrconfig.xml`**, **`lang/`**, **`stopwords.txt`**, etc. You only **bind-mount `./config/schema.xml`** over the core’s schema, so Solr still loads every other file from the image.
+
+**Kubernetes `solrInit`** does **not** use that layout. It builds a **configset from a ConfigMap** and runs **`solr zk upconfig`**. ZooKeeper (and every Solr node) only see **what you uploaded** — so **`stopwords.txt`**, **`lang/stopwords_en.txt`**, and every other path referenced in **`schema.xml`** must **exist in the ConfigMap**. IQSS only checks **three** files into Git (`schema.xml`, `solrconfig.xml`, `update-fields.sh`); the rest normally lives in Solr’s stock **`_default`** configset. **`ops/fetch-dataverse-solr-conf.sh`** therefore downloads IQSS + **merges** **`lang/`** and the root **`*.txt`** helpers from **`apache/lucene-solr`** tag **`releases/lucene-solr/8.11.2`** (aligned with Bitnami Solr **8.11.x**), then applies the Solr **8.11** schema patch.
+
+You need the **official** Solr files for your Dataverse version: **`solrconfig.xml`** and **`schema.xml`**, **plus** those merged helpers for K8s.
 
 ### A — Recommended: IQSS Git tag (matches Dataverse)
 
@@ -64,37 +70,25 @@ chmod +x ops/fetch-dataverse-solr-conf.sh
 
 Source in GitHub: **[`IQSS/dataverse` → `conf/solr/`](https://github.com/IQSS/dataverse/tree/v6.10.1/conf/solr)** (replace **`v6.10.1`** in the URL if you change **`DATAVERSE_GIT_REF`**). Keep the tag aligned with your **`gdcc/dataverse`** image version.
 
-**Solr 8.11 (Bitnami):** IQSS **`v6.10.1`** `schema.xml` includes a few **`<tokenizer name="standard"/>`** / **`<filter name="stop"`** lines that Solr **8.11** rejects (*missing mandatory attribute `class`*). **`fetch-dataverse-solr-conf.sh`** runs **`ops/patch-dataverse-schema-solr811.sh`** automatically. If you built **`dv-solr-conf`** by hand, run **`./ops/patch-dataverse-schema-solr811.sh path/to/schema.xml`** before **`create-solr-conf-configmap.sh`**.
+**Solr 8.11 (Bitnami):** **`fetch-dataverse-solr-conf.sh`** runs **`ops/merge-solr811-default-resources.sh`** ( **`lang/`**, **`stopwords.txt`**, … from **`apache/lucene-solr`** tag **`releases/lucene-solr/8.11.2`**) and **`ops/patch-dataverse-schema-solr811.sh`** (legacy **`<tokenizer name="..."/>`** → **`class=`**). If you assemble **`dv-solr-conf`** by hand, run **merge + patch** before **`create-solr-conf-configmap.sh`**.
 
-### Docker Compose in this repo (coronawhy/solr)
+**Verify the bundle:** after fetch, **`dv-solr-conf/`** should include **`solrconfig.xml`**, **`schema.xml`**, **`stopwords.txt`**, and a **`lang/`** directory (dozens of files total). A ConfigMap built from only IQSS’s three Git files will fail in the cluster (**missing `stopwords.txt`**, **`tokenizer` `class`**, etc.).
 
-**`docker cp solr:/var/solr/data/dataverse/conf`** usually yields **only `schema.xml`**, because **`docker-compose.yml`** bind-mounts **`./config/schema.xml`** onto that path and the rest of the core config may live elsewhere in the image. List keys on the cluster ConfigMap: **`kubectl get cm dataverse-besties-solr-conf -o json \| jq -r '.data \| keys \| length'`** — it should be **many**, not **`1`**.
+**Local Compose vs cluster Solr version:** **`docker-compose.yml`** uses **`coronawhy/solr:8.9.0`**; **besties** uses **Bitnami Solr 8.11.x**. The same IQSS **`schema.xml` / `solrconfig.xml`** plus merged **`_default`** resources are intended to work for both; bump the Compose image toward **8.11** if you need tighter parity.
 
-Find **`solrconfig.xml`** inside the container, then copy **that directory** (or assemble a full `conf/` from the Dataverse release):
+**`config/schema.xml` in this repo:** default Compose only bind-mounts that file; the image supplies **`solrconfig.xml`**, **`lang/`**, etc. For **`solrInit`**, use **`fetch-dataverse-solr-conf.sh`** (add **`OVERLAY_REPO_SCHEMA=1`** to bake **`./config/schema.xml`** into **`dv-solr-conf/schema.xml`**). To drive local Solr from the **same tree** as the ConfigMap, replace the Compose volume with **`./dv-solr-conf:/var/solr/data/dataverse/conf:ro`** (and drop the **`config/schema.xml`** line), or keep schema-only dev and refresh **`./config/schema.xml`** from **`dv-solr-conf/schema.xml`** when you cut a new cluster bundle.
 
-```bash
-docker compose exec solr find /opt/solr /var/solr -name solrconfig.xml 2>/dev/null
-# Example: if the path is /opt/solr/server/solr/configsets/foo/conf
-docker cp "solr:/opt/solr/server/solr/configsets/foo/conf" ./dv-solr-conf
-# Overlay repo schema if you customize it:
-cp ./config/schema.xml ./dv-solr-conf/schema.xml
-./ops/create-solr-conf-configmap.sh "$(pwd)/dv-solr-conf" demo-dataverse-besties
-```
-
-- Follow **[Dataverse Solr prerequisites](https://guides.dataverse.org/en/latest/installation/prerequisites.html#solr)** for your version.  
-- Typical source: the **Dataverse release zip** / installer tree, or the **`conf/`** tree under the IQSS Dataverse Git repo for the Solr version you run (often under a path like `conf/solr/...` for a given Solr minor).
-
-Your Solr image is **8.11.x** (Bitnami legacy); use the config that matches **Dataverse + Solr 8** for your release.
+See **[Dataverse Solr prerequisites](https://guides.dataverse.org/en/latest/installation/prerequisites.html#solr)** for version notes and the release zip if you are not using the fetch script.
 
 ---
 
 ## 3. Kubernetes ConfigMap `dataverse-besties-solr-conf`
 
-From the directory that contains `schema.xml`, `solrconfig.xml`, and any other files for that release (IQSS **v6.10.1** → use **`ops/fetch-dataverse-solr-conf.sh`** above):
+Point at the **full** directory produced by **`fetch-dataverse-solr-conf.sh`** (typically **`dv-solr-conf/`** — gitignored). **`kubectl create configmap --from-file=`** turns each file into a ConfigMap data key (including **`lang/stopwords_en.txt`**-style paths when present).
 
 ```bash
 chmod +x ops/create-solr-conf-configmap.sh
-./ops/create-solr-conf-configmap.sh /absolute/path/to/solr/conf demo-dataverse-besties
+./ops/create-solr-conf-configmap.sh "$(pwd)/dv-solr-conf" demo-dataverse-besties
 ```
 
 Or manually:
@@ -102,7 +96,7 @@ Or manually:
 ```bash
 kubectl create configmap dataverse-besties-solr-conf \
   --namespace=demo-dataverse-besties \
-  --from-file=/absolute/path/to/solr/conf \
+  --from-file=/absolute/path/to/dv-solr-conf \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
@@ -128,5 +122,5 @@ Run your normal deploy (or `envsubst` + `helm upgrade`). Ensure **`DATAVERSE_SOL
 
 - **InitContainer fails on `solr zk`:** check **`solrInit.zkConnect`** in rendered values (chroot, DNS, port **2181**).  
 - **401 from Solr:** fix GitHub **`SOLR_ADMIN_*`** / values (**`solrInit.adminUser`** / **`adminPassword`**) or **`existingSecret`** keys, or disable Solr auth.  
-- **Collection CREATE returns HTTP 400:** the init script prints Solr’s JSON error body. Causes include: **`schema.xml` / Solr 8.11** — **`analyzer/tokenizer: missing mandatory attribute 'class'`** → run **`./ops/patch-dataverse-schema-solr811.sh`** on **`schema.xml`** and re-apply the ConfigMap. **ZK chroot** — Bitnami usually needs **`/solr`** on **`zkConnect`**. **Replicas** — try **`replicationFactor: 1`** if nodes are insufficient.  
+- **Collection CREATE returns HTTP 400:** the init script prints Solr’s JSON error body. **`Can't find resource 'stopwords.txt'`** (or other **`lang/`** files) → re-run **`./ops/fetch-dataverse-solr-conf.sh`** (or **`./ops/merge-solr811-default-resources.sh "$(pwd)/dv-solr-conf"`**) and re-apply the ConfigMap. **`analyzer/tokenizer: missing mandatory attribute 'class'`** → run **`./ops/patch-dataverse-schema-solr811.sh`** on **`schema.xml`**. **ZK chroot** — Bitnami usually needs **`/solr`** on **`zkConnect`**. **Replicas** — try **`replicationFactor: 1`** if nodes are insufficient.  
 - **Schema errors:** conf must match your **Dataverse** version.

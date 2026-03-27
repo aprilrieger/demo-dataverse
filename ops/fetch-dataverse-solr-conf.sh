@@ -3,8 +3,9 @@
 #
 # For v6.10.x this is the full tree under https://github.com/IQSS/dataverse/tree/v6.10.1/conf/solr
 # (schema.xml, solrconfig.xml, update-fields.sh). Align DATAVERSE_GIT_REF with your Payara image.
-# After download (and optional OVERLAY_REPO_SCHEMA), runs ops/patch-dataverse-schema-solr811.sh so
-# schema.xml works with Solr 8.11+ (Bitnami): IQSS v6.10.1 uses legacy <tokenizer name="..."/> lines.
+# Then merges Solr 8.11 _default resources (lang/, stopwords.txt, …) via
+# ops/merge-solr811-default-resources.sh — IQSS Git omits those; Compose gets them from the image.
+# Finally ops/patch-dataverse-schema-solr811.sh fixes legacy <tokenizer name="..."/> for Solr 8.11+.
 #
 # Usage:
 #   ./ops/fetch-dataverse-solr-conf.sh
@@ -39,7 +40,8 @@ if [[ "${OVERLAY_REPO_SCHEMA:-}" == "1" ]]; then
   fi
 fi
 
-chmod +x "${OPS}/patch-dataverse-schema-solr811.sh" 2>/dev/null || true
+chmod +x "${OPS}/merge-solr811-default-resources.sh" "${OPS}/patch-dataverse-schema-solr811.sh" 2>/dev/null || true
+"${OPS}/merge-solr811-default-resources.sh" "${OUT}"
 "${OPS}/patch-dataverse-schema-solr811.sh" "${OUT}/schema.xml"
 
 echo "Wrote Dataverse ${REF} Solr conf to ${OUT}"

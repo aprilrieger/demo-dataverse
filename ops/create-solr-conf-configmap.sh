@@ -19,9 +19,11 @@ if [[ ! -f "${CONF_DIR}/solrconfig.xml" ]]; then
   echo "error: ${CONF_DIR} must contain solrconfig.xml (full Dataverse Solr conf), not schema.xml alone." >&2
   echo "  This repo's docker-compose bind-mounts only ./config/schema.xml onto the core conf path, so" >&2
   echo "  docker cp solr:/var/solr/data/dataverse/conf often copies just schema.xml." >&2
-  echo "  Find the real conf in the Solr image, e.g.:" >&2
-  echo "    docker compose exec solr find /opt/solr /var/solr -name solrconfig.xml 2>/dev/null" >&2
-  echo "  Or use the Dataverse release / IQSS conf tree — see ops/solr-init-setup.md" >&2
+  echo "  Use ./ops/fetch-dataverse-solr-conf.sh (IQSS + Solr _default resources) — see ops/solr-init-setup.md" >&2
+  exit 1
+fi
+if [[ ! -f "${CONF_DIR}/stopwords.txt" ]]; then
+  echo "error: missing stopwords.txt — schema.xml references it; run ./ops/merge-solr811-default-resources.sh \"${CONF_DIR}\"" >&2
   exit 1
 fi
 

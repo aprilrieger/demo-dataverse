@@ -91,12 +91,12 @@ Requires Docker Compose v2 **with `depends_on: condition: service_completed_succ
 
 ### `config/` and `triggers/`
 
-- **`config/schema.xml`** — Solr schema fragment mounted into the Solr image.
+- **`config/schema.xml`** — Solr schema used by **Docker Compose** (bind-mounted into **`coronawhy/solr`**). The image still provides **`solrconfig.xml`**, **`lang/`**, **`stopwords.txt`**, etc. For **Kubernetes `solrInit`**, build a **full** conf directory with **`ops/fetch-dataverse-solr-conf.sh`** (IQSS **`conf/solr`** from Git + merged Solr **8.11** **`_default`** resources + schema patch); use **`OVERLAY_REPO_SCHEMA=1`** to fold **`./config/schema.xml`** into that bundle. Details: **`ops/solr-init-setup.md`**.
 - **`triggers/`** — SQL/Python helpers mounted where the compose file expects them.
 
 ### Helm / Kubernetes: deploy checklist
 
-**[`ops/kubernetes-deploy-checklist.md`](ops/kubernetes-deploy-checklist.md)** — GitHub Environment secrets, cluster Secrets (S3, optional Solr init / API token), then run Actions → Deploy.
+**[`ops/kubernetes-deploy-checklist.md`](ops/kubernetes-deploy-checklist.md)** — GitHub Environment secrets, cluster Secrets (S3, Solr conf ConfigMap for **`solrInit`**, optional API token), then run Actions → Deploy.
 
 ### Helm / Kubernetes: AWS S3 secrets
 
@@ -118,7 +118,7 @@ To automate admin or native API calls (settings, collections, scripts), store a 
 |---------|------|
 | **reverse-proxy** | Traefik: routes `www.${traefikhost}` / `${traefikhost}` to Dataverse, optional TLS with ACME. |
 | **postgres** | Application database. |
-| **solr** | Search index (`coronawhy/solr` + mounted `schema.xml`). |
+| **solr** | Search index (`coronawhy/solr` + `./config/schema.xml`; cluster **`solrInit`** uses **`ops/fetch-dataverse-solr-conf.sh`** — **`ops/solr-init-setup.md`**). |
 | **minio** | S3-compatible object storage (optional for basic UI flows). |
 | **dataverse** | GDCC Dataverse on Payara (`gdcc/dataverse:${VERSION}`), `platform: linux/amd64`. |
 | **dev_bootstrap** | One-shot **GDCC configbaker** `bootstrap.sh dev`: root Dataverse, metadata, **`dataverseAdmin`**, FAKE DOI defaults. Waits until Dataverse's **`/api/info/version`** returns **200**. |
