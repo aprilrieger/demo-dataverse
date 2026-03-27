@@ -49,7 +49,16 @@ data:
       echo "solr-init: extracting solr-conf.tgz into ${STAGING}"
       tar xzf "${CONF_DIR}/solr-conf.tgz" -C "${STAGING}"
     else
-      echo "solr-init: warning: no solr-conf.tgz — flat ConfigMap; lang/ will be missing. Rebuild ConfigMap with ops/create-solr-conf-configmap.sh" >&2
+      echo "solr-init: no solr-conf.tgz under ${CONF_DIR} — ConfigMap is still the old flat layout (kubectl --from-file=dir omits lang/)." >&2
+      echo "solr-init: listing mount (expect a single solr-conf.tgz after ./ops/create-solr-conf-configmap.sh):" >&2
+      ls -la "${CONF_DIR}" >&2 || true
+      POD_NS=""
+      if [[ -r /var/run/secrets/kubernetes.io/serviceaccount/namespace ]]; then
+        POD_NS=$(tr -d '\n' < /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+        echo "solr-init: fix: from repo, ./ops/create-solr-conf-configmap.sh \"\$(pwd)/dv-solr-conf\" ${POD_NS}" >&2
+      else
+        echo "solr-init: fix: ./ops/create-solr-conf-configmap.sh \"\$(pwd)/dv-solr-conf\" <namespace>" >&2
+      fi
       cp -aL "${CONF_DIR}/." "${STAGING}/"
     fi
     UPLOAD_DIR=""

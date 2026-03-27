@@ -34,14 +34,23 @@ fi
 # kubectl create configmap --from-file=DIR only adds *top-level* files; it skips subdirs, so lang/
 # never reaches the cluster. Pack the full tree as one .tgz; load-solr-init untars it (see chart).
 TMP_TAR="$(mktemp)"
-cleanup() { rm -f "${TMP_TAR}"; }
+TMP_YAML="$(mktemp)"
+cleanup() { rm -f "${TMP_TAR}" "${TMP_YAML}"; }
 trap cleanup EXIT
 COPYFILE_DISABLE=1 tar czf "${TMP_TAR}" -C "${CONF_DIR}" .
 
 kubectl create configmap "$NAME" \
   --namespace="$NAMESPACE" \
   --from-file=solr-conf.tgz="${TMP_TAR}" \
-  --dry-run=client -o yaml | kubectl apply -f -
+  --dry-run=client -o yaml >"${TMP_YAML}"
+
+# Replace (not merge-apply) so an old flat ConfigMap’s `data:` keys are dropped; otherwise the pod
+# still mounts dozens of stale files and it is unclear that only solr-conf.tgz matters.
+if kubectl get configmap "$NAME" --namespace="$NAMESPACE" >/dev/null 2>&1; then
+  kubectl replace -f "${TMP_YAML}"
+else
+  kubectl apply -f "${TMP_YAML}"
+fi
 
 echo "ConfigMap $NAME applied in namespace $NAMESPACE (binary key solr-conf.tgz — full tree including lang/)"
-echo "Verify: kubectl get configmap \"$NAME\" -n \"$NAMESPACE\" -o jsonpath='{.binaryData}' | head -c 80; echo"
+echo "Verify: kubectl get configmap \"$NAME\" -n \"$NAMESPACE\" -o json | grep -E 'binaryData|solr-conf'"
