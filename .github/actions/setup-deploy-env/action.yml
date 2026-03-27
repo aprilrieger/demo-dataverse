@@ -1,0 +1,22 @@
+# Checkout repo for deploy jobs (Helm chart, ops/*.tmpl.yaml, bin/helm_deploy).
+name: Setup deploy checkout
+description: Checkout repository and ensure placeholder .env files exist.
+
+inputs:
+  token:
+    description: Token for actions/checkout
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+        token: ${{ inputs.token }}
+
+    - name: Ensure placeholder env files exist
+      shell: bash
+      run: touch .env.development .env

@@ -9,7 +9,6 @@ container:
   port: 8080
 
 image:
-  # bin/helm_deploy sets repository/tag via --set; these are local/chart defaults.
   repository: gdcc/dataverse
   pullPolicy: IfNotPresent
   # If empty, templates fall back to Chart.AppVersion (may not match image tags like 6.10.1-noble-r0).

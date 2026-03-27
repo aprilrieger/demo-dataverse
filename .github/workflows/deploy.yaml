@@ -1,14 +1,5 @@
-# Same flow as notch8/actions deploy (kubeconfig → envsubst → bin/helm_deploy), but defined in-repo
-# so `inputs.environment` matches `ops/<environment>-deploy.tmpl.yaml` (the reusable workflow at
-# notch8/actions@v0.0.24 does not declare `environment` on workflow_call, so it cannot receive it
-# from a caller). If your org fixes that upstream, you can replace this job with:
-#   uses: notch8/actions/.github/workflows/deploy.yaml@<ref>
-#   secrets: inherit
-#   with:
-#     image_name: ${{ github.repository }}
-#     tag: ${{ inputs.tag }}
-#     deploy-solr-image: false
-
+# In-repo deploy: checkout → kubeconfig → envsubst → bin/helm_deploy.
+# Container image comes from chart defaults + ops/<environment>-deploy.yaml (not ghcr.io/<this repo>).
 name: Deploy
 run-name: Deploy (${{ github.ref_name }} -> ${{ inputs.environment }}) by @${{ github.actor }}
 
@@ -22,10 +13,6 @@ on:
         default: besties
         options:
           - besties
-      tag:
-        description: Optional image tag (default = short SHA from setup-env)
-        required: false
-        type: string
       debug_enabled:
         description: Open an interactive tmate session on the runner before deploy
         required: false
@@ -57,12 +44,10 @@ jobs:
       KUBECONFIG: ./kubeconfig.yml
       KUBECONFIG_FILE: ${{ secrets.KUBECONFIG_FILE }}
     steps:
-      - name: Setup checkout and image tag
-        uses: notch8/actions/setup-env@v1.0.8
+      - name: Setup checkout
+        uses: ./.github/actions/setup-deploy-env
         with:
-          tag: ${{ inputs.tag }}
-          image_name: ${{ github.repository }}
-          token: ${{ secrets.CHECKOUT_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -79,8 +64,6 @@ jobs:
             export SOLR_AUTH_PREFIX="${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@"
           fi
           DOLLAR=$ envsubst < "ops/${{ inputs.environment }}-deploy.tmpl.yaml" > "ops/${{ inputs.environment }}-deploy.yaml"
-          export DEPLOY_TAG="${TAG}"
-          export DEPLOY_IMAGE="ghcr.io/${REPO_LOWER}"
           REL='${{ inputs.k8s_release_name }}'
           NS='${{ inputs.k8s_namespace }}'
           if [ -z "$REL" ]; then REL="${{ github.event.repository.name }}-${{ inputs.environment }}"; fi
