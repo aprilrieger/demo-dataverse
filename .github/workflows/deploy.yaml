@@ -1,0 +1,89 @@
+# Same flow as notch8/actions deploy (kubeconfig → envsubst → bin/helm_deploy), but defined in-repo
+# so `inputs.environment` matches `ops/<environment>-deploy.tmpl.yaml` (the reusable workflow at
+# notch8/actions@v0.0.24 does not declare `environment` on workflow_call, so it cannot receive it
+# from a caller). If your org fixes that upstream, you can replace this job with:
+#   uses: notch8/actions/.github/workflows/deploy.yaml@<ref>
+#   secrets: inherit
+#   with:
+#     image_name: ${{ github.repository }}
+#     tag: ${{ inputs.tag }}
+#     deploy-solr-image: false
+
+name: Deploy
+run-name: Deploy (${{ github.ref_name }} -> ${{ inputs.environment }}) by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deploy target (must match ops/<name>-deploy.tmpl.yaml and a GitHub Environment)
+        required: true
+        type: choice
+        default: besties
+        options:
+          - besties
+      tag:
+        description: Optional image tag (default = short SHA from setup-env)
+        required: false
+        type: string
+      debug_enabled:
+        description: Open an interactive tmate session on the runner before deploy
+        required: false
+        type: boolean
+        default: false
+      k8s_release_name:
+        description: Helm release name (leave blank for <repo>-<environment>)
+        required: false
+        type: string
+      k8s_namespace:
+        description: Kubernetes namespace (leave blank for <repo>-<environment>)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    container: dtzar/helm-kubectl:3.9.4
+    environment: ${{ inputs.environment }}
+    env:
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      SOLR_ADMIN_USER: ${{ secrets.SOLR_ADMIN_USER }}
+      SOLR_ADMIN_PASSWORD: ${{ secrets.SOLR_ADMIN_PASSWORD }}
+      HELM_EXPERIMENTAL_OCI: 1
+      HELM_EXTRA_ARGS: --values ops/${{ inputs.environment }}-deploy.yaml
+      KUBECONFIG: ./kubeconfig.yml
+      KUBECONFIG_FILE: ${{ secrets.KUBECONFIG_FILE }}
+    steps:
+      - name: Setup checkout and image tag
+        uses: notch8/actions/setup-env@v1.0.8
+        with:
+          tag: ${{ inputs.tag }}
+          image_name: ${{ github.repository }}
+          token: ${{ secrets.CHECKOUT_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: github.event_name == 'workflow_dispatch' && inputs.debug_enabled
+        with:
+          limit-access-to-actor: true
+
+      - name: Deploy with Helm
+        run: |
+          set -e
+          echo "$KUBECONFIG_FILE" | base64 -d > "$KUBECONFIG"
+          export SOLR_AUTH_PREFIX=""
+          if [ -n "${SOLR_ADMIN_USER:-}" ] && [ -n "${SOLR_ADMIN_PASSWORD:-}" ]; then
+            export SOLR_AUTH_PREFIX="${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@"
+          fi
+          DOLLAR=$ envsubst < "ops/${{ inputs.environment }}-deploy.tmpl.yaml" > "ops/${{ inputs.environment }}-deploy.yaml"
+          export DEPLOY_TAG="${TAG}"
+          export DEPLOY_IMAGE="ghcr.io/${REPO_LOWER}"
+          REL='${{ inputs.k8s_release_name }}'
+          NS='${{ inputs.k8s_namespace }}'
+          if [ -z "$REL" ]; then REL="${{ github.event.repository.name }}-${{ inputs.environment }}"; fi
+          if [ -z "$NS" ]; then NS="${{ github.event.repository.name }}-${{ inputs.environment }}"; fi
+          chmod +x bin/helm_deploy
+          ./bin/helm_deploy "$REL" "$NS"

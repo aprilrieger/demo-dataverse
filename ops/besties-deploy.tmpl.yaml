@@ -1,0 +1,118 @@
+# Helm values for the "besties" GitHub Environment (staging / shared demo).
+#
+# This file uses envsubst: every $VAR below must be exported (or use ../ops/render-besties-deploy.sh).
+# Required:
+#   export DB_PASSWORD='...'              # Postgres (DATAVERSE_DB_* / POSTGRES_* / PGPASSWORD)
+#   export DOLLAR='$'                     # Keeps literal $ for any $-prefixed YAML if needed later
+# Optional Solr HTTP basic auth (Dataverse builds http://<host>:<port>/solr/...; user:pass@ before host works with SolrJ if password is URL-safe):
+#   export SOLR_ADMIN_USER='...'
+#   export SOLR_ADMIN_PASSWORD='...'      # URL-encode if it contains @ : # etc. (or set SOLR_AUTH_PREFIX by hand)
+# Or set the whole prefix yourself and skip user/password:
+#   export SOLR_AUTH_PREFIX='admin:encodedpass@'
+# Then:
+#   envsubst < ops/besties-deploy.tmpl.yaml > ops/besties-deploy.yaml
+#
+# In GitHub Actions, add secrets SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD (or pre-bake SOLR_AUTH_PREFIX).
+
+awsS3:
+  enabled: true
+  # Name of a Secret you create out-of-band (keys = secretKeys below).
+  existingSecret: "aws-s3-credentials"
+  bucketName: "demo-dataverse"
+  endpointUrl: "https://s3.us-west-2.amazonaws.com"
+  # Must match the profile section in mounted .aws/credentials (e.g. [default]); override in values if needed.
+  profile: default
+  secretKeys:
+    credentials: credentials
+    config: config
+
+replicaCount: 1
+
+resources:
+  limits:
+    memory: 4Gi
+    cpu: "1000m"
+  requests:
+    memory: 2Gi
+    cpu: 100m
+
+ingress:
+  enabled: true
+  className: nginx-ingress
+  annotations:
+    nginx.org/client-max-body-size: "0"
+    cert-manager.io/cluster-issuer: letsencrypt-production-dns
+  hosts:
+    - host: demo-dataverse.notch8.cloud
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: "*.demo-dataverse.notch8.cloud"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - demo-dataverse.notch8.cloud
+        - "*.demo-dataverse.notch8.cloud"
+      secretName: demo-dataverse-tls
+
+# Payara/Dataverse — external Postgres + Solr (see .env / docker-compose for names).
+extraEnvVars:
+  - name: DATAVERSE_DB_HOST
+    value: acid-postgres-cluster-delta.postgres.svc.cluster.local
+  - name: DATAVERSE_DB_USER
+    value: dataverse
+  - name: DATAVERSE_DB_PASSWORD
+    value: $DB_PASSWORD
+  - name: DATAVERSE_DB_NAME
+    value: demo_dataverse_besties
+  - name: POSTGRES_SERVER
+    value: acid-postgres-cluster-delta.postgres.svc.cluster.local
+  - name: POSTGRES_PORT
+    value: "5432"
+  - name: POSTGRES_DATABASE
+    value: demo_dataverse_besties
+  - name: POSTGRES_USER
+    value: dataverse
+  - name: POSTGRES_PASSWORD
+    value: $DB_PASSWORD
+  - name: PGPASSWORD
+    value: $DB_PASSWORD
+  # Solr: SOLR_AUTH_PREFIX env is empty or "user:pass@" for basic auth (see file header).
+  - name: SOLR_SERVICE_HOST
+    value: "${SOLR_AUTH_PREFIX}solr.solr.svc.cluster.local:8983"
+  - name: SOLR_SERVICE_PORT
+    value: "8983"
+  - name: SOLR_LOCATION
+    value: "${SOLR_AUTH_PREFIX}solr.solr.svc.cluster.local:8983"
+  # MicroProfile dataverse.solr.host — include auth prefix in host fragment so the Solr URL is http://user:pass@host:8983/...
+  - name: DATAVERSE_SOLR_HOST
+    value: "${SOLR_AUTH_PREFIX}solr.solr.svc.cluster.local"
+  - name: DATAVERSE_SOLR_PORT
+    value: "8983"
+  # Core name (dataverse.solr.core); Solr must have this core + Dataverse schema.
+  - name: DATAVERSE_SOLR_CORE
+    value: dataverse
+  - name: DATAVERSE_URL
+    value: https://demo-dataverse.notch8.cloud
+  - name: DATAVERSE_SERVICE_HOST
+    value: demo-dataverse.notch8.cloud
+  - name: hostname
+    value: demo-dataverse.notch8.cloud
+  - name: JVM_OPTS
+    value: "-Xmx2g -Xms2g"
+  - name: DATAVERSE_PID_PROVIDERS
+    value: demo
+  - name: DATAVERSE_PID_DEFAULT_PROVIDER
+    value: demo
+  - name: DATAVERSE_PID_DEMO_TYPE
+    value: FAKE
+  - name: DATAVERSE_PID_DEMO_LABEL
+    value: demo
+  - name: DATAVERSE_PID_DEMO_AUTHORITY
+    value: "10.5072"
+  - name: DATAVERSE_PID_DEMO_SHOULDER
+    value: FK2/
+  - name: INIT_SCRIPTS_FOLDER
+    value: /opt/payara/init.d

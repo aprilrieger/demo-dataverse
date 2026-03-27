@@ -82,6 +82,10 @@ Shell scripts run by the Dataverse container's startup flow (order by filename).
 - **`config/schema.xml`** — Solr schema fragment mounted into the Solr image.
 - **`triggers/`** — SQL/Python helpers mounted where the compose file expects them.
 
+### Helm / Kubernetes: AWS S3 secrets
+
+For cluster deploys, object storage uses an out-of-band Kubernetes Secret and Helm `awsS3` values. Step-by-step (bucket, IAM, `kubectl create secret`, values alignment) is in **`ops/aws-s3-kubernetes-setup.md`**.
+
 ---
 
 ## Services (overview)
