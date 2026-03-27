@@ -45,15 +45,23 @@ data:
     rm -rf "${STAGING}"
     mkdir -p "${STAGING}"
     cp -aL "${CONF_DIR}/." "${STAGING}/"
-    if [[ ! -f "${STAGING}/solrconfig.xml" ]]; then
-      echo "solr-init: expected solrconfig.xml in ConfigMap mount ${CONF_DIR} (after copy: ${STAGING})" >&2
-      ls -la "${CONF_DIR}" >&2 || true
+    UPLOAD_DIR=""
+    if [[ -f "${STAGING}/solrconfig.xml" ]]; then
+      UPLOAD_DIR="${STAGING}"
+    elif [[ -f "${STAGING}/conf/solrconfig.xml" ]]; then
+      UPLOAD_DIR="${STAGING}/conf"
+    else
+      echo "solr-init: missing solrconfig.xml — ConfigMap must be the full Dataverse Solr conf directory, not schema.xml only." >&2
+      echo "solr-init: See https://guides.dataverse.org/en/latest/installation/prerequisites.html#solr and ops/solr-init-setup.md" >&2
+      echo "solr-init: Example: docker cp solr:/var/solr/data/dataverse/conf ./dv-solr-conf && ./ops/create-solr-conf-configmap.sh \"\$(pwd)/dv-solr-conf\" demo-dataverse-besties" >&2
+      echo "solr-init: Staged files under ${STAGING}:" >&2
+      find "${STAGING}" -type f 2>/dev/null | sort >&2 || ls -laR "${STAGING}" >&2 || true
       exit 1
     fi
 
     SOLR_HOME="$(cd "$(dirname "$SOLR_BIN")/.." && pwd)"
-    echo "solr-init: uploading configset ${CONFIGSET} to ZK ${ZK}"
-    (cd "${SOLR_HOME}" && "$SOLR_BIN" zk upconfig -z "${ZK}" -n "${CONFIGSET}" -d "${STAGING}")
+    echo "solr-init: uploading configset ${CONFIGSET} to ZK ${ZK} (from ${UPLOAD_DIR})"
+    (cd "${SOLR_HOME}" && "$SOLR_BIN" zk upconfig -z "${ZK}" -n "${CONFIGSET}" -d "${UPLOAD_DIR}")
 
     echo "solr-init: checking collection ${COLLECTION}"
     LIST_JSON=$(curl -sfS "${AUTH[@]}" "${BASE}/solr/admin/collections?action=LIST")

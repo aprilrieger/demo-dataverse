@@ -7,6 +7,9 @@ ops/besties-deploy.yaml
 # Local AWS CLI-shaped files used only for `kubectl create secret` (IAM access keys). Never commit.
 .aws-dataverse-s3/
 
+# Local Solr conf tree for ConfigMap (`docker cp …/conf ./dv-solr-conf`); do not commit.
+dv-solr-conf/
+
 # Legacy bind-mount dirs (safe to delete if present after switching to named volumes)
 letsencrypt/
 database-data/

@@ -45,7 +45,39 @@ If your Solr is **standalone** (no ZooKeeper), **`solr zk upconfig`** / SolrClou
 
 ## 2. Solr `conf/` directory (Dataverse release)
 
-You need the **full** Solr configuration directory for your Dataverse version (not only `schema.xml`).
+You need the **official** Solr files for your Dataverse version: at minimum **`solrconfig.xml`** and **`schema.xml`** (for IQSS **v6.10.1** the Git tree is exactly three files under **`conf/solr/`** — no separate **`lang/`** tree in-repo).
+
+### A — Recommended: IQSS Git tag (matches Dataverse)
+
+Download the same **`conf/solr/`** files your release ships with:
+
+```bash
+chmod +x ops/fetch-dataverse-solr-conf.sh
+./ops/fetch-dataverse-solr-conf.sh
+# Optional: use this repo’s customized schema (Compose bind-mount source):
+#   OVERLAY_REPO_SCHEMA=1 ./ops/fetch-dataverse-solr-conf.sh
+# Optional: other Dataverse version (Git tag, e.g. v6.9.0):
+#   DATAVERSE_GIT_REF=v6.9.0 ./ops/fetch-dataverse-solr-conf.sh
+
+./ops/create-solr-conf-configmap.sh "$(pwd)/dv-solr-conf" demo-dataverse-besties
+```
+
+Source in GitHub: **[`IQSS/dataverse` → `conf/solr/`](https://github.com/IQSS/dataverse/tree/v6.10.1/conf/solr)** (replace **`v6.10.1`** in the URL if you change **`DATAVERSE_GIT_REF`**). Keep the tag aligned with your **`gdcc/dataverse`** image version.
+
+### Docker Compose in this repo (coronawhy/solr)
+
+**`docker cp solr:/var/solr/data/dataverse/conf`** usually yields **only `schema.xml`**, because **`docker-compose.yml`** bind-mounts **`./config/schema.xml`** onto that path and the rest of the core config may live elsewhere in the image. List keys on the cluster ConfigMap: **`kubectl get cm dataverse-besties-solr-conf -o json \| jq -r '.data \| keys \| length'`** — it should be **many**, not **`1`**.
+
+Find **`solrconfig.xml`** inside the container, then copy **that directory** (or assemble a full `conf/` from the Dataverse release):
+
+```bash
+docker compose exec solr find /opt/solr /var/solr -name solrconfig.xml 2>/dev/null
+# Example: if the path is /opt/solr/server/solr/configsets/foo/conf
+docker cp "solr:/opt/solr/server/solr/configsets/foo/conf" ./dv-solr-conf
+# Overlay repo schema if you customize it:
+cp ./config/schema.xml ./dv-solr-conf/schema.xml
+./ops/create-solr-conf-configmap.sh "$(pwd)/dv-solr-conf" demo-dataverse-besties
+```
 
 - Follow **[Dataverse Solr prerequisites](https://guides.dataverse.org/en/latest/installation/prerequisites.html#solr)** for your version.  
 - Typical source: the **Dataverse release zip** / installer tree, or the **`conf/`** tree under the IQSS Dataverse Git repo for the Solr version you run (often under a path like `conf/solr/...` for a given Solr minor).
@@ -56,7 +88,7 @@ Your Solr image is **8.11.x** (Bitnami legacy); use the config that matches **Da
 
 ## 3. Kubernetes ConfigMap `dataverse-besties-solr-conf`
 
-From the directory that contains `schema.xml`, `solrconfig.xml`, and the rest of `conf/`:
+From the directory that contains `schema.xml`, `solrconfig.xml`, and any other files for that release (IQSS **v6.10.1** → use **`ops/fetch-dataverse-solr-conf.sh`** above):
 
 ```bash
 chmod +x ops/create-solr-conf-configmap.sh

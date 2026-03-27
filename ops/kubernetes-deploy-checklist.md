@@ -36,7 +36,7 @@ Create these **before** (or right after namespace exists) so the chart can mount
 |-----------------|-------------|-----|
 | **`aws-s3-credentials`** | `awsS3.enabled: true` in values (e.g. besties) | Full walkthrough: **[`ops/aws-s3-kubernetes-setup.md`](aws-s3-kubernetes-setup.md)** (`kubectl create secret generic …`, keys `credentials` + `config`). |
 | **`dataverse-admin-api-key`** (optional) | Only if you mount a superuser API token on the pod/Jobs | **[`ops/dataverse-admin-api-key-kubernetes.md`](dataverse-admin-api-key-kubernetes.md)** — chart does **not** require this for a basic deploy. |
-| **ConfigMap `dataverse-besties-solr-conf`** | **`solrInit`** is on for besties | **[`ops/solr-init-setup.md`](solr-init-setup.md)** and **`ops/create-solr-conf-configmap.sh`**. Solr admin creds come from GitHub **`SOLR_ADMIN_*`** via envsubst, not a cluster Secret. |
+| **ConfigMap `dataverse-besties-solr-conf`** | **`solrInit`** is on for besties | **[`ops/solr-init-setup.md`](solr-init-setup.md)** — **`ops/fetch-dataverse-solr-conf.sh`** (IQSS **`conf/solr`**) then **`ops/create-solr-conf-configmap.sh`**. Solr admin creds: GitHub **`SOLR_ADMIN_*`** via envsubst. |
 
 **Namespace:** Match whatever you deploy with (default from workflow: `<repo-name>-<environment>`, e.g. `demo-dataverse-besties`).
 
