@@ -1,0 +1,17 @@
+{{- if .Values.internalSolr.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "demo-dataverse.fullname" . }}-solr
+  labels:
+    {{- include "demo-dataverse.internalSolrLabels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8983
+      targetPort: solr-http
+      protocol: TCP
+      name: solr-http
+  selector:
+    {{- include "demo-dataverse.internalSolrSelectorLabels" . | nindent 4 }}
+{{- end }}

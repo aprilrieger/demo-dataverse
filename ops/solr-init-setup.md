@@ -8,7 +8,7 @@
 
 Other environments can turn the same behavior on in **`charts/demo-dataverse/values.yaml`** or a values overlay.
 
-For **besties**, **`solrInit.zkConnect`** is set **in git** in **`ops/besties-deploy.tmpl.yaml`** (same string your Solr nodes use). Edit that value when ZK hostnames or chroot change; the deploy workflow does **not** use a **`ZK_CONNECT`** secret.
+For **besties**, the default **`ops/besties-deploy.tmpl.yaml`** enables **`internalSolr`** (standalone **`solr:8.11.2`** in the **same namespace**, no ZooKeeper, no Solr HTTP auth) and sets **`solrInit.mode: standalone`** with **`solrHttpBase`** / Dataverse env pointing at **`http://<release>-solr.<namespace>.svc.cluster.local:8983`**. If you change the Helm release name or namespace in GitHub Deploy inputs, update those host strings in the tmpl to match. For **external SolrCloud** instead, set **`internalSolr.enabled: false`**, **`solrInit.mode: cloud`**, and **`solrInit.zkConnect`** to your ZK string (see §1 below).
 
 ### Dataverse search + Solr HTTP basic auth (stock `gdcc/dataverse` image)
 

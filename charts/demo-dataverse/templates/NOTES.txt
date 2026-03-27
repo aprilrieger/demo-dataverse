@@ -1,3 +1,7 @@
+{{- if .Values.internalSolr.enabled }}
+In-cluster standalone Solr (no ZooKeeper): Service {{ include "demo-dataverse.fullname" . }}-solr port 8983 — from another pod in this namespace use http://{{ include "demo-dataverse.fullname" . }}-solr.{{ .Release.Namespace }}.svc.cluster.local:8983 . Ensure solrInit.solrHttpBase and DATAVERSE_SOLR_HOST match that host.
+
+{{- end }}
 1. Get the application URL by running these commands:
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}

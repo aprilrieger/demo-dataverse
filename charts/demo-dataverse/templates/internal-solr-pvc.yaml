@@ -1,0 +1,17 @@
+{{- if and .Values.internalSolr.enabled .Values.internalSolr.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "demo-dataverse.fullname" . }}-solr-data
+  labels:
+    {{- include "demo-dataverse.internalSolrLabels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.internalSolr.persistence.size | quote }}
+  {{- if .Values.internalSolr.persistence.storageClassName }}
+  storageClassName: {{ .Values.internalSolr.persistence.storageClassName | quote }}
+  {{- end }}
+{{- end }}

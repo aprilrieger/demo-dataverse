@@ -60,6 +60,27 @@ app.kubernetes.io/component: primary
 {{- end }}
 
 {{/*
+Labels for the optional in-chart standalone Solr Deployment/Service (must NOT match demo-dataverse.selectorLabels
+or the main Deployment ReplicaSet will count Solr pods).
+*/}}
+{{- define "demo-dataverse.internalSolrLabels" -}}
+helm.sh/chart: {{ include "demo-dataverse.chart" . }}
+app.kubernetes.io/name: {{ include "demo-dataverse.name" . }}-solr
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: internal-solr
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "demo-dataverse.internalSolrSelectorLabels" -}}
+app.kubernetes.io/name: {{ include "demo-dataverse.name" . }}-solr
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: internal-solr
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "demo-dataverse.serviceAccountName" -}}

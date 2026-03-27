@@ -52,8 +52,12 @@ spec:
                 name: {{ .Values.solrInit.existingSecret | quote }}
           {{- end }}
           env:
+            {{- if or .Values.internalSolr.enabled (eq .Values.solrInit.mode "standalone") }}
+            - name: SOLR_INIT_MODE
+              value: "standalone"
+            {{- end }}
             - name: SOLR_ZK_CONNECT
-              value: {{ .Values.solrInit.zkConnect | quote }}
+              value: {{ .Values.solrInit.zkConnect | default "" | quote }}
             - name: SOLR_HTTP_BASE
               value: {{ .Values.solrInit.solrHttpBase | quote }}
             - name: SOLR_COLLECTION

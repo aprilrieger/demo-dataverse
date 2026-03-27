@@ -4,17 +4,17 @@
 # Required:
 #   export DB_PASSWORD='...'              # Postgres (DATAVERSE_DB_* / POSTGRES_* / PGPASSWORD)
 #   export DOLLAR='$'                     # Keeps literal $ for any $-prefixed YAML if needed later
-# Solr HTTP basic auth: same GitHub Environment secrets for Dataverse env *and* solrInit (envsubst).
-#   export SOLR_ADMIN_USER='...'
-#   export SOLR_ADMIN_PASSWORD='...'      # if password contains @ : # etc., URL-encode or Solr URLs may break
+# Optional CI:
+#   export GITHUB_RUN_ID='...'            # pod rollout nonce (Actions sets this automatically)
 # Then:
 #   envsubst < ops/besties-deploy.tmpl.yaml > ops/besties-deploy.yaml
 #
-# GitHub Actions: SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD (job env → envsubst → Helm values, including solrInit).
-# solrInit.zkConnect is literal below (edit for your ZK DNS + chroot).
-# If Solr has no basic auth: set both secrets empty and change Solr URL values + solrInit admin fields to drop user:pass@.
+# Besties uses in-chart **standalone Solr** (no ZooKeeper, no HTTP auth) in the **same namespace** as Dataverse.
+# Service DNS (default release/namespace `demo-dataverse-besties`): `…-solr.<ns>.svc.cluster.local:8983`.
+# If you change `k8s_release_name` / `k8s_namespace` in Deploy, edit **internalSolr** is automatic; edit
+# **solrInit.solrHttpBase** and **DATAVERSE_SOLR_*** / **SOLR_*** host strings below to match `<release>-solr.<ns>`.
 #
-# Before first deploy with solrInit: Solr conf ConfigMap — see ops/solr-init-setup.md .
+# Before first deploy: ConfigMap **dataverse-besties-solr-conf** — see ops/solr-init-setup.md .
 
 awsS3:
   enabled: true
@@ -69,23 +69,32 @@ ingress:
         - "*.demo-dataverse.notch8.cloud"
       secretName: demo-dataverse-tls
 
-# Upload Dataverse Solr configset to ZK + create collection "dataverse" before Payara starts (see ops/solr-init-setup.md).
+# Standalone Solr in this release (official solr:8.11.2, core "dataverse", no ZK / no HTTP basic auth).
+internalSolr:
+  enabled: true
+  image: solr:8.11.2
+  imagePullPolicy: IfNotPresent
+  persistence:
+    enabled: false
+  resources: {}
+
+# Wait for in-cluster Solr core ping before Payara (standalone). For external SolrCloud, set internalSolr.enabled: false,
+# mode: cloud, zkConnect, solrHttpBase, and replicationFactor — see charts/demo-dataverse/values.yaml.
 solrInit:
   enabled: true
+  mode: standalone
   image: bitnamilegacy/solr:8.11.2-debian-11-r50
   imagePullPolicy: IfNotPresent
-  # Same hosts as SOLR_ZK_HOSTS + Bitnami ZK chroot /solr (omit /solr only if your Solr chart uses no chroot).
-  zkConnect: "solr-zookeeper-0.solr-zookeeper-headless.solr.svc.cluster.local:2181,solr-zookeeper-1.solr-zookeeper-headless.solr.svc.cluster.local:2181,solr-zookeeper-2.solr-zookeeper-headless.solr.svc.cluster.local:2181/solr"
-  solrHttpBase: "http://solr.solr.svc.cluster.local:8983"
+  zkConnect: ""
+  solrHttpBase: "http://demo-dataverse-besties-solr.demo-dataverse-besties.svc.cluster.local:8983"
   collection: dataverse
   configSetName: dataverse_config
   numShards: 1
-  replicationFactor: 2
+  replicationFactor: 1
   confConfigMap: dataverse-besties-solr-conf
-  # Same creds as extraEnvVars Solr URLs (envsubst); no separate init Secret.
   existingSecret: ""
-  adminUser: "${SOLR_ADMIN_USER}"
-  adminPassword: "${SOLR_ADMIN_PASSWORD}"
+  adminUser: ""
+  adminPassword: ""
   resources: {}
 
 # Payara/Dataverse — external Postgres + Solr. Create DB + role on the server first (quoted names if hyphenated);
@@ -111,26 +120,21 @@ extraEnvVars:
     value: $DB_PASSWORD
   - name: PGPASSWORD
     value: $DB_PASSWORD
-  # Solr: SOLR_ADMIN_* + anchor feed solrInit (curl -u). Stock Dataverse Http2SolrClient does NOT send Basic Auth
-  # from user:pass in DATAVERSE_SOLR_HOST — if Solr enforces HTTP auth, search 401s until Solr auth is off or the
-  # app is patched (see ops/solr-init-setup.md § "Dataverse search + Solr HTTP basic auth").
+  # In-release standalone Solr (same namespace as Dataverse; must match solrInit.solrHttpBase host).
   - name: SOLR_SERVICE_HOST
-    value: &solr_host_colon_port "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local:8983"
+    value: &solr_host_port "demo-dataverse-besties-solr.demo-dataverse-besties.svc.cluster.local:8983"
   - name: SOLR_SERVICE_PORT
     value: "8983"
   - name: SOLR_LOCATION
-    value: *solr_host_colon_port
+    value: *solr_host_port
   - name: DATAVERSE_SOLR_HOST
-    value: "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local"
+    value: "demo-dataverse-besties-solr.demo-dataverse-besties.svc.cluster.local"
   - name: DATAVERSE_SOLR_PORT
     value: "8983"
-  # Core name (dataverse.solr.core); Solr must have this core + Dataverse schema.
   - name: DATAVERSE_SOLR_CORE
     value: dataverse
-  # Lowercase dataverse_* → Payara create-system-properties (init_2_configure.sh). Does not fix Solr 401 with
-  # Http2SolrClient + Solr HTTP auth — see solr-init-setup.md; kept for explicit dataverse.solr.* in domain.
   - name: dataverse_solr_host
-    value: "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local"
+    value: "demo-dataverse-besties-solr.demo-dataverse-besties.svc.cluster.local"
   - name: dataverse_solr_port
     value: "8983"
   - name: dataverse_solr_core

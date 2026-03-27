@@ -167,6 +167,19 @@ affinity: {}
 # Optional raw initContainers run before the main container (same idea as Hyrax chart solrPreSetupInitContainer).
 solrPreSetupInitContainer: []
 
+# Standalone Solr (no ZooKeeper) in the same namespace as this release — official solr image, single core
+# "dataverse" via solr-precreate. Uses solrInit.confConfigMap (solr-conf.tgz or flat conf). Turn off your
+# external SolrCloud auth/complexity for demos; point solrInit.solrHttpBase at this Service (port 8983).
+internalSolr:
+  enabled: false
+  image: solr:8.11.2
+  imagePullPolicy: IfNotPresent
+  resources: {}
+  persistence:
+    enabled: false
+    size: 5Gi
+    storageClassName: ""
+
 # SolrCloud bootstrap before Payara starts (same pattern as Hyrax load-solr-config initContainer:
 # https://github.com/samvera/hyrax/blob/main/chart/hyrax/templates/deployment.yaml ).
 # Uses a Solr image for `solr zk upconfig`, not the Dataverse image (which has no Hyrax shell scripts).
@@ -176,6 +189,8 @@ solrInit:
   enabled: false
   image: bitnamilegacy/solr:8.11.2-debian-11-r50
   imagePullPolicy: IfNotPresent
+  # cloud = zk upconfig + Collections API (needs zkConnect). standalone = wait for core ping only (use with internalSolr.enabled).
+  mode: cloud
   # ZooKeeper connect string Solr uses (include chroot if any), e.g. zk-0.zk-hs:2181,zk-1.zk-hs:2181,zk-2.zk-hs:2181/solr
   zkConnect: ""
   # Base URL for Solr admin HTTP (no path suffix), e.g. http://solr.solr.svc.cluster.local:8983

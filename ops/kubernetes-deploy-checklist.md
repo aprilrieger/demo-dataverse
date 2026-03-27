@@ -10,12 +10,12 @@ Use this as the single entry point; each step links to or points at detailed doc
 |--------|---------|
 | `KUBECONFIG_FILE` | Base64-encoded kubeconfig for `helm`/`kubectl` (see deploy workflow). |
 | `DB_PASSWORD` | Postgres password; substituted into `ops/<env>-deploy.tmpl.yaml` via `envsubst`. |
-| `SOLR_ADMIN_USER` | Solr HTTP basic auth user (`extraEnvVars` Solr URLs and **`solrInit.adminUser`**). |
-| `SOLR_ADMIN_PASSWORD` | Solr HTTP basic auth password (**`solrInit.adminPassword`**). |
 
-The workflow substitutes `DB_PASSWORD` and `SOLR_ADMIN_*` into `ops/besties-deploy.tmpl.yaml` via `envsubst` (one source for the app container and **`load-solr-config`**). **`solrInit.zkConnect`** is committed literally in that file (edit if your ZooKeeper DNS/chroot differs).
+**Besties** uses in-chart **standalone Solr** (**`internalSolr.enabled: true`**) with **no HTTP basic auth** — you do **not** need **`SOLR_ADMIN_*`** secrets for that layout. For **external SolrCloud** with basic auth, set **`SOLR_ADMIN_USER`** / **`SOLR_ADMIN_PASSWORD`** (or **`solrInit.existingSecret`**) and see **[`ops/solr-init-setup.md`](solr-init-setup.md)**.
 
-**Solr HTTP basic auth and Dataverse (stock `gdcc/dataverse`):** Dataverse’s SolrJ **`Http2SolrClient`** is built **without** **`withBasicAuthCredentials`**, so **`user:pass@host` in env or in `:SolrHostColonPort` does not send `Authorization` headers** — search/index still get **401** if Solr requires HTTP basic auth. **`SOLR_ADMIN_*`** in Helm only helps **`solrInit`** (curl **`-u`**). For typical private-cluster demos, set **Bitnami Solr** **`auth.enabled: false`** (or otherwise disable Solr HTTP auth); see **[`ops/solr-init-setup.md`](solr-init-setup.md)** callout *Dataverse search + Solr HTTP basic auth*.
+The workflow substitutes **`DB_PASSWORD`** into `ops/besties-deploy.tmpl.yaml` via `envsubst`. If you use **SolrCloud** in values instead of **`internalSolr`**, set **`solrInit.zkConnect`** and Solr URLs in the tmpl to match your cluster.
+
+**Solr HTTP basic auth and Dataverse (stock `gdcc/dataverse`):** SolrJ **`Http2SolrClient`** does not send Basic Auth from **`user:pass@host`** in env — use **internal standalone Solr** (besties default) or disable auth on external Solr; details in **[`ops/solr-init-setup.md`](solr-init-setup.md)**.
 
 ## 2. PostgreSQL (external cluster)
 

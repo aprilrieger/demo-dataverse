@@ -42,8 +42,6 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      SOLR_ADMIN_USER: ${{ secrets.SOLR_ADMIN_USER }}
-      SOLR_ADMIN_PASSWORD: ${{ secrets.SOLR_ADMIN_PASSWORD }}
       # Bumped every workflow run so the Deployment pod template changes and Kubernetes rolls pods even when
       # image.tag and the rest of values are identical (otherwise `helm upgrade` can "succeed" with no rollout).
       GITHUB_RUN_ID: ${{ github.run_id }}

@@ -6,7 +6,6 @@
 #   ./ops/render-besties-deploy.sh
 #   ./ops/render-besties-deploy.sh /path/to/out.yaml
 #
-# Optional Solr basic auth: export SOLR_ADMIN_USER and SOLR_ADMIN_PASSWORD (Solr URLs in the tmpl).
 # Optional: export DOLLAR='$' (script sets this if unset)
 # podAnnotations deploy.github.com/run-id: defaults to "local" so values are valid; bump GITHUB_RUN_ID to force a rollout locally.
 

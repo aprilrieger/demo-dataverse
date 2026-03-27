@@ -1,0 +1,94 @@
+{{- if .Values.internalSolr.enabled }}
+{{- if not .Values.solrInit.enabled }}{{ fail "internalSolr.enabled requires solrInit.enabled (initContainer waits for core)" }}{{- end }}
+{{- if not .Values.solrInit.confConfigMap }}{{ fail "internalSolr.enabled requires solrInit.confConfigMap" }}{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "demo-dataverse.fullname" . }}-solr
+  labels:
+    {{- include "demo-dataverse.internalSolrLabels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "demo-dataverse.internalSolrSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "demo-dataverse.internalSolrSelectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: solr-install-configset
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 0
+          command:
+            - sh
+            - -ec
+            - |
+              mkdir -p /configsets/dv
+              if [ -f /cm/solr-conf.tgz ]; then
+                tar -xzf /cm/solr-conf.tgz -C /configsets/dv
+              else
+                cp -a /cm/. /configsets/dv/
+              fi
+              chown -R 8983:8983 /configsets
+          volumeMounts:
+            - name: solr-configset
+              mountPath: /configsets
+            - name: solr-conf-cm
+              mountPath: /cm
+              readOnly: true
+      containers:
+        - name: solr
+          image: {{ .Values.internalSolr.image | quote }}
+          imagePullPolicy: {{ .Values.internalSolr.imagePullPolicy }}
+          args: ["solr-precreate", "dataverse", "dv"]
+          ports:
+            - containerPort: 8983
+              name: solr-http
+          volumeMounts:
+            - name: solr-configset
+              mountPath: /opt/solr/server/solr/configsets
+              readOnly: true
+            - name: solr-datadir
+              mountPath: /var/solr/data
+          readinessProbe:
+            httpGet:
+              path: /solr/dataverse/admin/ping
+              port: 8983
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /solr/dataverse/admin/ping
+              port: 8983
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 4
+          {{- with .Values.internalSolr.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: solr-configset
+          emptyDir: {}
+        - name: solr-conf-cm
+          configMap:
+            name: {{ .Values.solrInit.confConfigMap | quote }}
+        - name: solr-datadir
+          {{- if .Values.internalSolr.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "demo-dataverse.fullname" . }}-solr-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }}
