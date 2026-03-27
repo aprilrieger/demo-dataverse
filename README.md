@@ -77,6 +77,18 @@ Payara-related password files used by the Dataverse image; mounted read-only int
 
 Shell scripts run by the Dataverse container's startup flow (order by filename). Use this for extra JVM options, storage drivers, or post-boot tweaks. Scripts should match patterns from upstream [dataverse-docker](https://github.com/IQSS/dataverse-docker) / your image's docs.
 
+### Tenant branding (repeatable on every `up`)
+
+Installation branding (installation name, navbar logo, custom header/home/footer/CSS, navbar URLs) is driven by **`branding/branding.env`** and static files under **`branding/docroot/`**. In the **gdcc/dataverse** image, **`/logos/*`** is *not* served from Payara’s `domains/domain1/docroot`; `glassfish-web.xml` sends it to **`DATAVERSE_FILES_DOCROOT`** (default **`/dv/docroot`**). Compose bind-mounts **`branding/docroot/logos/navbar`** to **`/dv/docroot/logos/navbar`** so `/logos/navbar/logo.png` resolves (the rest of `/dv/docroot/logos/` is left for theme uploads). **Dataset uploads** use a different path (**`/dv/uploads`** via `DATAVERSE_FILES_UPLOADS`)—that is temp upload processing space, not where you put the navbar logo.
+
+1. After first boot, create a **superuser API token** in the UI and save it **on one line** in **`secrets/api/key`** (or set **`DATAVERSE_API_TOKEN`** in `.env`—avoid committing real tokens).
+2. **`docker compose up -d`** runs **`dev_branding`** once after **`dev_bootstrap`** completes; it executes **`scripts/apply-branding.sh`** and issues idempotent Admin API `PUT`s.
+3. Compose does **not** re-run finished one-shot services on later `up`s. To apply branding again after you change `branding.env` or assets, run **`docker compose run --rm dev_branding`** or **`./bin/dev-up`** (brings the stack up, then re-runs branding).
+
+Requires Docker Compose v2 **with `depends_on: condition: service_completed_successfully`**. See the [Dataverse branding guide](https://guides.dataverse.org/en/latest/installation/config.html#branding-your-installation) for path semantics.
+
+**Broken image in the header:** Dataverse can show **two** logos: the small **navbar** image (`:LogoCustomizationFile` → e.g. `/logos/navbar/logo.png`) and a separate **root collection theme** banner (`/logos/<id>/<theme file>`). A missing theme file produces a broken `<img>` even when your navbar file is fine. This repo sets **`DISABLE_ROOT_DATAVERSE_THEME=true`** in `branding/branding.env` by default when you use a navbar logo; re-run `docker compose run --rm dev_branding` after changing it. Confirm the asset loads with `curl -sI "http://localhost:8080/logos/navbar/logo.png"` (or through Traefik on port 80).
+
 ### `config/` and `triggers/`
 
 - **`config/schema.xml`** — Solr schema fragment mounted into the Solr image.
@@ -85,6 +97,14 @@ Shell scripts run by the Dataverse container's startup flow (order by filename).
 ### Helm / Kubernetes: AWS S3 secrets
 
 For cluster deploys, object storage uses an out-of-band Kubernetes Secret and Helm `awsS3` values. Step-by-step (bucket, IAM, `kubectl create secret`, values alignment) is in **`ops/aws-s3-kubernetes-setup.md`**.
+
+### Helm / Kubernetes: production branding
+
+This chart does **not** automate installation branding in the cluster. For production, configure branding and uploaded assets through the **Dataverse UI** (see the [installation branding guide](https://guides.dataverse.org/en/latest/installation/config.html#branding-your-installation)). Local **Docker Compose** still uses **`branding/`**, **`scripts/apply-branding.sh`**, and **`dev_branding`** as described above.
+
+### Helm / Kubernetes: superuser API token
+
+To automate admin or native API calls (settings, collections, scripts), store a superuser API token in a cluster Secret and wire it with `extraEnvFrom` / `secretKeyRef`. See **`ops/dataverse-admin-api-key-kubernetes.md`**.
 
 ---
 
@@ -98,6 +118,7 @@ For cluster deploys, object storage uses an out-of-band Kubernetes Secret and He
 | **minio** | S3-compatible object storage (optional for basic UI flows). |
 | **dataverse** | GDCC Dataverse on Payara (`gdcc/dataverse:${VERSION}`), `platform: linux/amd64`. |
 | **dev_bootstrap** | One-shot **GDCC configbaker** `bootstrap.sh dev`: root Dataverse, metadata, **`dataverseAdmin`**, FAKE DOI defaults. Waits until Dataverse's **`/api/info/version`** returns **200**. |
+| **dev_branding** | One-shot after bootstrap: applies **`branding/branding.env`** via Admin API. Re-run with **`docker compose run --rm dev_branding`** or **`./bin/dev-up`**. |
 | **whoami** | Tiny Traefik test service. |
 
 Docker network **`dataverse_traefik`** is created by Compose (no manual `docker network create`).

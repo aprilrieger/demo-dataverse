@@ -219,7 +219,10 @@ services:
       volumes:
         - ${CONFIGURATION_PATH}/secrets:/secrets
         - dataverse_files:/data
-        - dataverse_docroot:/opt/docroot
+        # Branding: URL /logos/* -> DATAVERSE_FILES_DOCROOT (/dv/docroot). Mount only logos/navbar so
+        # /dv/docroot/logos/<id>/... (theme uploads) stays on the container filesystem.
+        - ./branding/docroot/logos/navbar:/dv/docroot/logos/navbar:ro
+        - ./branding/docroot/branding:/dv/docroot/branding:ro
         - ./init.d:/opt/payara/init.d
         - ./triggers:/opt/payara/triggers
         - ./config/schema.xml:/opt/payara/dvinstall/schema.xml
@@ -256,13 +259,33 @@ services:
         dataverse:
           condition: service_healthy
 
+    # After bootstrap: apply branding/branding.env via Admin API (idempotent). Re-run with:
+    #   docker compose run --rm dev_branding
+    # or use bin/dev-up so branding runs on every invocation.
+    dev_branding:
+      <<: *env-from-file
+      image: curlimages/curl:8.6.0
+      restart: "no"
+      entrypoint: ["/bin/sh", "/scripts/apply-branding.sh"]
+      environment:
+        DATAVERSE_INTERNAL_URL: http://dataverse:8080
+        BRANDING_ENV_PATH: /branding/branding.env
+      volumes:
+        - ./scripts/apply-branding.sh:/scripts/apply-branding.sh:ro
+        - ./branding:/branding:ro
+        - ${CONFIGURATION_PATH}/secrets:/secrets:ro
+      networks:
+        - traefik
+      depends_on:
+        dev_bootstrap:
+          condition: service_completed_successfully
+
 volumes:
   traefik_letsencrypt:
   postgres_data:
   solr-data:
   minio_data:
   dataverse_files:
-  dataverse_docroot:
 
 networks:
   traefik:
