@@ -64,6 +64,8 @@ chmod +x ops/fetch-dataverse-solr-conf.sh
 
 Source in GitHub: **[`IQSS/dataverse` → `conf/solr/`](https://github.com/IQSS/dataverse/tree/v6.10.1/conf/solr)** (replace **`v6.10.1`** in the URL if you change **`DATAVERSE_GIT_REF`**). Keep the tag aligned with your **`gdcc/dataverse`** image version.
 
+**Solr 8.11 (Bitnami):** IQSS **`v6.10.1`** `schema.xml` includes a few **`<tokenizer name="standard"/>`** / **`<filter name="stop"`** lines that Solr **8.11** rejects (*missing mandatory attribute `class`*). **`fetch-dataverse-solr-conf.sh`** runs **`ops/patch-dataverse-schema-solr811.sh`** automatically. If you built **`dv-solr-conf`** by hand, run **`./ops/patch-dataverse-schema-solr811.sh path/to/schema.xml`** before **`create-solr-conf-configmap.sh`**.
+
 ### Docker Compose in this repo (coronawhy/solr)
 
 **`docker cp solr:/var/solr/data/dataverse/conf`** usually yields **only `schema.xml`**, because **`docker-compose.yml`** bind-mounts **`./config/schema.xml`** onto that path and the rest of the core config may live elsewhere in the image. List keys on the cluster ConfigMap: **`kubectl get cm dataverse-besties-solr-conf -o json \| jq -r '.data \| keys \| length'`** — it should be **many**, not **`1`**.
@@ -126,5 +128,5 @@ Run your normal deploy (or `envsubst` + `helm upgrade`). Ensure **`DATAVERSE_SOL
 
 - **InitContainer fails on `solr zk`:** check **`solrInit.zkConnect`** in rendered values (chroot, DNS, port **2181**).  
 - **401 from Solr:** fix GitHub **`SOLR_ADMIN_*`** / values (**`solrInit.adminUser`** / **`adminPassword`**) or **`existingSecret`** keys, or disable Solr auth.  
-- **Collection CREATE returns HTTP 400:** the init script prints Solr’s JSON error body. Common causes: **ZK chroot** — Bitnami SolrCloud usually needs **`/solr`** at the end of **`zkConnect`** (same as **`hosts:2181/solr`**), or Solr cannot see the configset uploaded by **`zk upconfig`**. After fixing **`zkConnect`**, you may need to remove a wrongly placed ZK config path or bump the configset name once. Also confirm enough live Solr nodes for **`replicationFactor`** (try **`replicationFactor: 1`** if you only have one Solr pod).  
+- **Collection CREATE returns HTTP 400:** the init script prints Solr’s JSON error body. Causes include: **`schema.xml` / Solr 8.11** — **`analyzer/tokenizer: missing mandatory attribute 'class'`** → run **`./ops/patch-dataverse-schema-solr811.sh`** on **`schema.xml`** and re-apply the ConfigMap. **ZK chroot** — Bitnami usually needs **`/solr`** on **`zkConnect`**. **Replicas** — try **`replicationFactor: 1`** if nodes are insufficient.  
 - **Schema errors:** conf must match your **Dataverse** version.
