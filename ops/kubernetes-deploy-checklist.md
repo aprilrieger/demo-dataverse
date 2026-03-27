@@ -15,6 +15,8 @@ Use this as the single entry point; each step links to or points at detailed doc
 
 The workflow substitutes `DB_PASSWORD` and `SOLR_ADMIN_*` into `ops/besties-deploy.tmpl.yaml` via `envsubst` (one source for the app container and **`load-solr-config`**). **`solrInit.zkConnect`** is committed literally in that file (edit if your ZooKeeper DNS/chroot differs).
 
+**Solr HTTP basic auth and Dataverse:** Env vars such as **`DATAVERSE_SOLR_HOST=user:pass@solr…`** are correct for a **fresh** DB, but after **configbaker** or the installer runs, Dataverse usually stores **`:SolrHostColonPort`** in Postgres **without** credentials. That value **overrides** env until you update or remove it — otherwise logs show **`http://solr…:8983/solr/...`** and Solr returns **401**. See **[`ops/solr-init-setup.md` § Troubleshooting → 401](solr-init-setup.md)** for the admin API **`PUT`** and restart steps.
+
 ## 2. PostgreSQL (external cluster)
 
 Dataverse does **not** create the database. On the server in **`ops/besties-deploy.tmpl.yaml`** (`DATAVERSE_DB_HOST` / `POSTGRES_SERVER`), create the **database** and **role** that match **`DATAVERSE_DB_NAME`**, **`DATAVERSE_DB_USER`**, and your **`DB_PASSWORD`** secret.

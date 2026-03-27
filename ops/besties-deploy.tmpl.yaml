@@ -112,6 +112,8 @@ extraEnvVars:
   - name: PGPASSWORD
     value: $DB_PASSWORD
   # Solr (same SOLR_ADMIN_* as solrInit; YAML anchor dedupes identical host:port lines).
+  # If Solr uses HTTP basic auth: after bootstrap, Dataverse may persist :SolrHostColonPort in the DB without
+  # user:pass — that overrides these env vars until you PUT .../api/admin/settings/:SolrHostColonPort (see ops/solr-init-setup.md).
   - name: SOLR_SERVICE_HOST
     value: &solr_host_colon_port "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@solr.solr.svc.cluster.local:8983"
   - name: SOLR_SERVICE_PORT
