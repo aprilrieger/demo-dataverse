@@ -205,8 +205,10 @@ extraEnvVars:
   - name: SMTP_ENABLED
     value: "true"
   - name: SMTP_DOMAIN
-    value: "demo-dataverse.notch8.cloud"
+    value: "notch8.com"
   # Script reads these names (aligned with SMTP_* above).
+  # no_reply_email → Payara JavaMail --fromaddress (outbound From). No separate Reply-To in the session;
+  # mail clients reply to From when Reply-To is absent, so use support@ for both behaviors.
   - name: system_email
     value: "${SYSTEM_EMAIL}"
   - name: mailhost
@@ -214,7 +216,7 @@ extraEnvVars:
   - name: mailuser
     value: "apikey"
   - name: no_reply_email
-    value: "noreply@demo-dataverse.notch8.cloud"
+    value: "support@notch8.com"
   - name: smtp_password
     value: "${SMTP_PASSWORD}"
   - name: smtp_port
