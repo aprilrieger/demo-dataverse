@@ -150,3 +150,12 @@ extraEnvVars:
     value: FK2/
   - name: INIT_SCRIPTS_FOLDER
     value: /opt/payara/init.d
+
+# gdcc/configbaker after install (post-install hook). Same tag as image.tag above.
+# Does not run on `helm upgrade`. After the DB is bootstrapped once, you may set enabled: false to avoid
+# the hook re-running on a future `helm uninstall` + `helm install` against the same database.
+# If you wiped Postgres later, use GitHub Deploy → "Run configbaker bootstrap job" or apply a Job by hand.
+bootstrapJob:
+  enabled: true
+  helmHook: true
+  timeout: 20m

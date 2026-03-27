@@ -1,0 +1,44 @@
+{{- if .Values.bootstrapJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "demo-dataverse.fullname" . }}-bootstrap{{ if not .Values.bootstrapJob.helmHook }}-once{{ end }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "demo-dataverse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: configbaker-bootstrap
+  {{- if .Values.bootstrapJob.helmHook }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "15"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded,hook-failed
+  {{- end }}
+spec:
+  backoffLimit: {{ .Values.bootstrapJob.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.bootstrapJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "demo-dataverse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: configbaker-bootstrap
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: configbaker
+          image: "{{ .Values.bootstrapJob.image.repository }}:{{ .Values.bootstrapJob.image.tag | default .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.bootstrapJob.image.pullPolicy }}
+          command: {{- toYaml .Values.bootstrapJob.command | nindent 12 }}
+          env:
+            - name: DATAVERSE_URL
+              value: {{ .Values.bootstrapJob.dataverseUrl | default (printf "http://%s.%s.svc.cluster.local:%v" (include "demo-dataverse.fullname" .) .Release.Namespace .Values.service.port) | quote }}
+            - name: TIMEOUT
+              value: {{ .Values.bootstrapJob.timeout | quote }}
+          {{- with .Values.bootstrapJob.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

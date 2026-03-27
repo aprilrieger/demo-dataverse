@@ -205,3 +205,25 @@ awsS3:
   secretKeys:
     credentials: credentials
     config: config
+
+# One-shot gdcc/configbaker: root Dataverse, metadata blocks, dataverseAdmin (dev profile), FAKE DOI, etc.
+# See ops/kubernetes-deploy-checklist.md §6.
+# - helmHook=true (default): Helm post-install hook only (does not run on helm upgrade). Safe for GitOps.
+# - helmHook=false: plain Job (name …-bootstrap-once). For `helm template --show-only … | kubectl apply` only;
+#   do not set helmHook=false in a values file that you helm upgrade repeatedly (Job spec is immutable).
+bootstrapJob:
+  enabled: false
+  helmHook: true
+  image:
+    repository: gdcc/configbaker
+    tag: ""
+    pullPolicy: IfNotPresent
+  command:
+    - bootstrap.sh
+    - dev
+  # Empty = http://<fullname>.<namespace>.svc.cluster.local:<service.port> (matches DATAVERSE_URL on Deployment).
+  dataverseUrl: ""
+  timeout: 20m
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  resources: {}

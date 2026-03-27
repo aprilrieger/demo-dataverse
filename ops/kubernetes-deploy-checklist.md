@@ -59,7 +59,18 @@ If **`/`** still returns Dataverse “Page Not Found” **after** migrations hav
 
 **Docker Compose** runs this automatically: service **`dev_bootstrap`** uses **`gdcc/configbaker:${VERSION}`** with **`bootstrap.sh dev`** and **`DATAVERSE_URL=http://dataverse:8080`** (see **`docker-compose.yml`**). That creates the **root Dataverse**, default metadata, the **`dataverseAdmin`** user (**password `admin1`** unless your image overrides it), FAKE DOI defaults, etc.
 
-**Helm / Kubernetes** does **not** run configbaker for you. After deploy, **`/api/info/version`** returns **200**, and Solr/DB are healthy, run the **same** image and command once from the cluster, with **`DATAVERSE_URL`** set to the **in-cluster Service URL** for the Dataverse Deployment (not the public ingress hostname). Use the **same tag** as **`gdcc/dataverse`** (e.g. **`6.10.1-noble-r0`**).
+### Helm chart (this repo)
+
+**`charts/demo-dataverse`** can run the same bootstrap via **`bootstrapJob`** in values:
+
+- **`ops/besties-deploy.tmpl.yaml`** sets **`bootstrapJob.enabled: true`** and **`helmHook: true`**. The Job is a **Helm post-install hook** (weight 15): it runs once on **`helm install`**, uses **`gdcc/configbaker`** with the **same tag** as **`image.tag`**, and sets **`DATAVERSE_URL`** to **`http://<release-fullname>.<namespace>.svc.cluster.local:<service.port>`** unless you override **`bootstrapJob.dataverseUrl`**.
+- **`helm upgrade` does not re-run post-install hooks.** If you **wiped the DB** on an **existing** release, either run the GitHub Action **Deploy** workflow with **Run configbaker bootstrap job** checked, or apply a Job manually (below).
+
+### GitHub Actions
+
+Workflow **`.github/workflows/deploy.yaml`** input **Run configbaker bootstrap job** deletes **`$RELEASE-bootstrap-once`** (if present), then **`helm template --show-only templates/bootstrap-job.yaml`** with **`bootstrapJob.helmHook=false`** and **`kubectl apply`**, waits for completion, and prints logs.
+
+### Manual Job (edit namespace / tag / URL)
 
 ```bash
 kubectl -n demo-dataverse-besties get svc   # pick the Service that fronts Payara

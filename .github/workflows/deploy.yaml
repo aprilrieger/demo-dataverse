@@ -26,6 +26,11 @@ on:
         description: Kubernetes namespace (leave blank for <repo>-<environment>)
         required: false
         type: string
+      run_bootstrap_job:
+        description: Apply a one-shot configbaker Job (bootstrap.sh dev) — use after empty DB; deletes any prior …-bootstrap-once job first
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -69,3 +74,25 @@ jobs:
           if [ -z "$NS" ]; then NS="${{ github.event.repository.name }}-${{ inputs.environment }}"; fi
           chmod +x bin/helm_deploy
           ./bin/helm_deploy "$REL" "$NS"
+
+      - name: One-shot configbaker bootstrap Job
+        if: github.event_name == 'workflow_dispatch' && inputs.run_bootstrap_job
+        run: |
+          set -e
+          echo "$KUBECONFIG_FILE" | base64 -d > "$KUBECONFIG"
+          DOLLAR=$ envsubst < "ops/${{ inputs.environment }}-deploy.tmpl.yaml" > "ops/${{ inputs.environment }}-deploy.yaml"
+          REL='${{ inputs.k8s_release_name }}'
+          NS='${{ inputs.k8s_namespace }}'
+          if [ -z "$REL" ]; then REL="${{ github.event.repository.name }}-${{ inputs.environment }}"; fi
+          if [ -z "$NS" ]; then NS="${{ github.event.repository.name }}-${{ inputs.environment }}"; fi
+          JOB="${REL}-bootstrap-once"
+          kubectl -n "$NS" delete job "$JOB" --ignore-not-found=true
+          helm template "$REL" ./charts/demo-dataverse \
+            --namespace "$NS" \
+            $HELM_EXTRA_ARGS \
+            --show-only templates/bootstrap-job.yaml \
+            --set bootstrapJob.enabled=true \
+            --set bootstrapJob.helmHook=false \
+            | kubectl apply -f -
+          kubectl -n "$NS" wait --for=condition=complete "job/$JOB" --timeout=25m
+          kubectl -n "$NS" logs "job/$JOB"
