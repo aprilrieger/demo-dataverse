@@ -34,6 +34,11 @@ awsS3:
 
 replicaCount: 1
 
+# Docker Hub tag (not bare 6.10.1). Keeps deploy values explicit so Helm release history cannot stick to a bad tag.
+image:
+  repository: gdcc/dataverse
+  tag: "6.10.1-noble-r0"
+
 resources:
   limits:
     memory: 4Gi
