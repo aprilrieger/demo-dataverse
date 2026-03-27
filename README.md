@@ -41,7 +41,7 @@ When bootstrap finishes, open the UI (see below) and sign in with the **dev** ad
 | Payara admin | [http://localhost:4848/](http://localhost:4848/) | Default user **`admin`**; password from Payara / `secrets` (often **`admin`** in dev). |
 | Traefik dashboard | [http://localhost:8089/](http://localhost:8089/) | API insecure mode enabled for local use. |
 | Solr | [http://localhost:8983/](http://localhost:8983/) | Published on host for debugging. |
-| Postgres | `localhost:5433` | User/password/database match `.env`. |
+| Postgres | `localhost:5432` | User/password/database match `.env`. |
 
 **Bootstrap admin (after `dev_bootstrap` succeeds):**
 
