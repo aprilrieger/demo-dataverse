@@ -1,0 +1,10 @@
+*.war
+.idea/
+
+# Legacy bind-mount dirs (safe to delete if present after switching to named volumes)
+letsencrypt/
+database-data/
+docker-dev-volumes/
+minio-data/
+data/
+docroot/
