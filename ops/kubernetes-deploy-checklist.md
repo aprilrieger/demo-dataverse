@@ -15,7 +15,7 @@ Use this as the single entry point; each step links to or points at detailed doc
 
 The workflow substitutes `DB_PASSWORD` and `SOLR_ADMIN_*` into `ops/besties-deploy.tmpl.yaml` via `envsubst` (one source for the app container and **`load-solr-config`**). **`solrInit.zkConnect`** is committed literally in that file (edit if your ZooKeeper DNS/chroot differs).
 
-**Solr HTTP basic auth and Dataverse:** Env vars such as **`DATAVERSE_SOLR_HOST=user:pass@solr…`** are correct for a **fresh** DB, but after **configbaker** or the installer runs, Dataverse usually stores **`:SolrHostColonPort`** in Postgres **without** credentials. That value **overrides** env until you update or remove it — otherwise logs show **`http://solr…:8983/solr/...`** and Solr returns **401**. See **[`ops/solr-init-setup.md` § Troubleshooting → 401](solr-init-setup.md)** for the admin API **`PUT`** and restart steps.
+**Solr HTTP basic auth and Dataverse (stock `gdcc/dataverse`):** Dataverse’s SolrJ **`Http2SolrClient`** is built **without** **`withBasicAuthCredentials`**, so **`user:pass@host` in env or in `:SolrHostColonPort` does not send `Authorization` headers** — search/index still get **401** if Solr requires HTTP basic auth. **`SOLR_ADMIN_*`** in Helm only helps **`solrInit`** (curl **`-u`**). For typical private-cluster demos, set **Bitnami Solr** **`auth.enabled: false`** (or otherwise disable Solr HTTP auth); see **[`ops/solr-init-setup.md`](solr-init-setup.md)** callout *Dataverse search + Solr HTTP basic auth*.
 
 ## 2. PostgreSQL (external cluster)
 
