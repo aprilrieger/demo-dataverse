@@ -11,8 +11,9 @@ container:
 image:
   repository: gdcc/dataverse
   pullPolicy: IfNotPresent
-  # If empty, templates fall back to Chart.AppVersion (may not match image tags like 6.10.1-noble-r0).
-  tag: ""
+  # Docker Hub uses -noble-rN tags (see .env VERSION); there is no bare 6.10.1 tag.
+  # If empty, templates fall back to Chart.AppVersion.
+  tag: "6.10.1-noble-r0"
 
 imagePullSecrets: []
 nameOverride: ""
