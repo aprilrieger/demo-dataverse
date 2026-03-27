@@ -30,7 +30,7 @@ on:
         description: Apply a one-shot configbaker Job (bootstrap.sh dev) — use after empty DB; deletes any prior …-bootstrap-once job first
         required: false
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: read
@@ -44,6 +44,9 @@ jobs:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       SOLR_ADMIN_USER: ${{ secrets.SOLR_ADMIN_USER }}
       SOLR_ADMIN_PASSWORD: ${{ secrets.SOLR_ADMIN_PASSWORD }}
+      # Bumped every workflow run so the Deployment pod template changes and Kubernetes rolls pods even when
+      # image.tag and the rest of values are identical (otherwise `helm upgrade` can "succeed" with no rollout).
+      GITHUB_RUN_ID: ${{ github.run_id }}
       HELM_EXPERIMENTAL_OCI: 1
       HELM_EXTRA_ARGS: --values ops/${{ inputs.environment }}-deploy.yaml
       KUBECONFIG: ./kubeconfig.yml
@@ -74,6 +77,12 @@ jobs:
           if [ -z "$NS" ]; then NS="${{ github.event.repository.name }}-${{ inputs.environment }}"; fi
           chmod +x bin/helm_deploy
           ./bin/helm_deploy "$REL" "$NS"
+          echo "=== helm status ==="
+          helm status "$REL" -n "$NS"
+          echo "=== rollout (Dataverse deployment) ==="
+          kubectl -n "$NS" rollout status deployment \
+            -l "app.kubernetes.io/instance=${REL},app.kubernetes.io/name=demo-dataverse" \
+            --timeout=10m
 
       - name: One-shot configbaker bootstrap Job
         if: github.event_name == 'workflow_dispatch' && inputs.run_bootstrap_job

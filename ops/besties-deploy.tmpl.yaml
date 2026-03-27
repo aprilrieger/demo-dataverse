@@ -30,6 +30,11 @@ awsS3:
 
 replicaCount: 1
 
+# CI sets GITHUB_RUN_ID (see .github/workflows/deploy.yaml) so each deploy changes this annotation and forces a
+# new ReplicaSet. Local renders: export GITHUB_RUN_ID=manual-1 (or any string) when you need the same without CI.
+podAnnotations:
+  deploy.github.com/run-id: "${GITHUB_RUN_ID}"
+
 # Docker Hub tag (not bare 6.10.1). Keeps deploy values explicit so Helm release history cannot stick to a bad tag.
 image:
   repository: gdcc/dataverse
