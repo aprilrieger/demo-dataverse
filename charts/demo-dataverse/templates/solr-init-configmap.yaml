@@ -1,0 +1,56 @@
+{{- if .Values.solrInit.enabled }}
+{{- if not .Values.solrInit.zkConnect }}{{ fail "solrInit.zkConnect is required when solrInit.enabled" }}{{- end }}
+{{- if not .Values.solrInit.confConfigMap }}{{ fail "solrInit.confConfigMap is required when solrInit.enabled (ConfigMap with Dataverse solr conf files)" }}{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "demo-dataverse.fullname" . }}-solr-init-script
+  labels:
+    {{- include "demo-dataverse.labels" . | nindent 4 }}
+data:
+  solr-init.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    # SolrCloud: upload Dataverse configset to ZK, then create collection if missing.
+    SOLR_BIN="${SOLR_BIN:-/opt/bitnami/solr/bin/solr}"
+    ZK="${SOLR_ZK_CONNECT:?set solrInit.zkConnect}"
+    CONF_DIR="${SOLR_CONF_DIR:-/solr-conf}"
+    COLLECTION="${SOLR_COLLECTION:-demo-dataverse}"
+    CONFIGSET="${SOLR_CONFIGSET_NAME:-demo-dataverse}"
+    BASE="${SOLR_HTTP_BASE:?set solrInit.solrHttpBase}"
+    SHARDS="${SOLR_NUM_SHARDS:-1}"
+    RF="${SOLR_REPLICATION_FACTOR:-2}"
+
+    AUTH=()
+    if [[ -n "${SOLR_ADMIN_USER:-}" && -n "${SOLR_ADMIN_PASSWORD:-}" ]]; then
+      AUTH=(-u "${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}")
+    fi
+
+    echo "solr-init: waiting for Solr admin at ${BASE} ..."
+    for _ in $(seq 1 90); do
+      if curl -sfS "${AUTH[@]}" "${BASE}/solr/admin/info/system" >/dev/null 2>&1; then
+        echo "solr-init: Solr is up"
+        break
+      fi
+      sleep 2
+    done
+    if ! curl -sfS "${AUTH[@]}" "${BASE}/solr/admin/info/system" >/dev/null 2>&1; then
+      echo "solr-init: timeout waiting for Solr" >&2
+      exit 1
+    fi
+
+    echo "solr-init: uploading configset ${CONFIGSET} to ZK ${ZK}"
+    "$SOLR_BIN" zk upconfig -z "${ZK}" -n "${CONFIGSET}" -d "${CONF_DIR}"
+
+    echo "solr-init: checking collection ${COLLECTION}"
+    LIST_JSON=$(curl -sfS "${AUTH[@]}" "${BASE}/solr/admin/collections?action=LIST")
+    if echo "${LIST_JSON}" | grep -q "\"${COLLECTION}\""; then
+      echo "solr-init: collection ${COLLECTION} already exists"
+      exit 0
+    fi
+
+    echo "solr-init: creating collection ${COLLECTION} (shards=${SHARDS} replicas=${RF})"
+    curl -sfS "${AUTH[@]}" \
+      "${BASE}/solr/admin/collections?action=CREATE&name=${COLLECTION}&collection.configName=${CONFIGSET}&numShards=${SHARDS}&replicationFactor=${RF}"
+    echo "solr-init: done"
+{{- end }}

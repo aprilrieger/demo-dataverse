@@ -163,6 +163,35 @@ tolerations: []
 
 affinity: {}
 
+# Optional raw initContainers run before the main container (same idea as Hyrax chart solrPreSetupInitContainer).
+solrPreSetupInitContainer: []
+
+# SolrCloud bootstrap before Payara starts (same pattern as Hyrax load-solr-config initContainer:
+# https://github.com/samvera/hyrax/blob/main/chart/hyrax/templates/deployment.yaml ).
+# Uses a Solr image for `solr zk upconfig`, not the Dataverse image (which has no Hyrax shell scripts).
+# Provide a ConfigMap whose keys are Solr conf filenames (schema.xml, solrconfig.xml, …) from the Dataverse
+# release that matches your Dataverse version — see https://guides.dataverse.org/en/latest/installation/prerequisites.html#solr
+solrInit:
+  enabled: false
+  image: bitnamilegacy/solr:8.11.2-debian-11-r50
+  imagePullPolicy: IfNotPresent
+  # ZooKeeper connect string Solr uses (include chroot if any), e.g. zk-0.zk-hs:2181,zk-1.zk-hs:2181,zk-2.zk-hs:2181/solr
+  zkConnect: ""
+  # Base URL for Solr admin HTTP (no path suffix), e.g. http://solr.solr.svc.cluster.local:8983
+  solrHttpBase: "http://solr.solr.svc.cluster.local:8983"
+  collection: dataverse
+  configSetName: dataverse_config
+  numShards: 1
+  replicationFactor: 2
+  # Name of an existing ConfigMap in the release namespace (keys = files under conf/)
+  confConfigMap: ""
+  # Optional Secret with SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD for Solr basic auth
+  existingSecret: ""
+  # If existingSecret is empty, optional inline auth (prefer Secret)
+  adminUser: ""
+  adminPassword: ""
+  resources: {}
+
 # AWS S3 file storage for Dataverse (init.d copies mounted ~/.aws-style files; see charts/demo-dataverse/templates/deployment.yaml).
 awsS3:
   enabled: false

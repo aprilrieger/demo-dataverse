@@ -4,6 +4,9 @@
 # Generated from ops/*-deploy.tmpl.yaml in deploy CI (envsubst); do not commit.
 ops/besties-deploy.yaml
 
+# Local AWS CLI-shaped files used only for `kubectl create secret` (IAM access keys). Never commit.
+.aws-dataverse-s3/
+
 # Legacy bind-mount dirs (safe to delete if present after switching to named volumes)
 letsencrypt/
 database-data/

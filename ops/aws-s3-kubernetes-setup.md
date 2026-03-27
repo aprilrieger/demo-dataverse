@@ -17,7 +17,15 @@ Use this checklist when deploying with values like `ops/besties-deploy.tmpl.yaml
 
 ## 2. AWS: IAM for Dataverse
 
-1. Create an **IAM user** (or role if you later use IRSA / workload identity; this chart currently uses **static keys** in a Secret).
+1. Create an **IAM user** (or role if you later use IRSA / workload identity; this chart currently uses **static keys** in a Secret).  
+   **Suggested user name:** **`s3-demo-dataverse`** (dedicated to this bucket; not your personal SSO/assume-role identity).
+
+   ```bash
+   AWS_PROFILE=n8 aws iam create-user --user-name s3-demo-dataverse
+   ```
+
+   Attach the policy from step 2 (Console **IAM → Users → s3-demo-dataverse → Add permissions**, or `put-user-policy` / `attach-user-policy`).
+
 2. Attach a policy that allows Dataverse to read/write objects in that bucket. A minimal example (replace bucket name and optionally tighten `Resource` ARNs):
 
 ```json
@@ -46,7 +54,17 @@ Use this checklist when deploying with values like `ops/besties-deploy.tmpl.yaml
 }
 ```
 
-3. For that IAM user, create **access keys** (Console: user → **Security credentials** → **Create access key**). Save **Access key ID** and **Secret access key** securely.
+3. For that IAM user, create **access keys**. Save **Access key ID** and **Secret access key** immediately (secret is shown only once).
+
+   **Console:** user → **Security credentials** → **Create access key**.
+
+   **CLI:**
+
+   ```bash
+   AWS_PROFILE=n8 aws iam create-access-key --user-name s3-demo-dataverse
+   ```
+
+   Copy the keys into **`.aws-dataverse-s3/credentials`** (see §3); that path is **gitignored** in this repo.
 
 ---
 

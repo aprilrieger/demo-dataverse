@@ -59,10 +59,6 @@ jobs:
         run: |
           set -e
           echo "$KUBECONFIG_FILE" | base64 -d > "$KUBECONFIG"
-          export SOLR_AUTH_PREFIX=""
-          if [ -n "${SOLR_ADMIN_USER:-}" ] && [ -n "${SOLR_ADMIN_PASSWORD:-}" ]; then
-            export SOLR_AUTH_PREFIX="${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@"
-          fi
           DOLLAR=$ envsubst < "ops/${{ inputs.environment }}-deploy.tmpl.yaml" > "ops/${{ inputs.environment }}-deploy.yaml"
           REL='${{ inputs.k8s_release_name }}'
           NS='${{ inputs.k8s_namespace }}'

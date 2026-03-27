@@ -4,15 +4,21 @@
 # Required:
 #   export DB_PASSWORD='...'              # Postgres (DATAVERSE_DB_* / POSTGRES_* / PGPASSWORD)
 #   export DOLLAR='$'                     # Keeps literal $ for any $-prefixed YAML if needed later
-# Optional Solr HTTP basic auth (Dataverse builds http://<host>:<port>/solr/...; user:pass@ before host works with SolrJ if password is URL-safe):
+# Optional Solr HTTP basic auth — values below use ${SOLR_ADMIN_USER}:${SOLR_ADMIN_PASSWORD}@ (envsubst).
 #   export SOLR_ADMIN_USER='...'
-#   export SOLR_ADMIN_PASSWORD='...'      # URL-encode if it contains @ : # etc. (or set SOLR_AUTH_PREFIX by hand)
-# Or set the whole prefix yourself and skip user/password:
-#   export SOLR_AUTH_PREFIX='admin:encodedpass@'
+#   export SOLR_ADMIN_PASSWORD='...'      # if password contains @ : # etc., URL-encode or Solr URLs may break
 # Then:
 #   envsubst < ops/besties-deploy.tmpl.yaml > ops/besties-deploy.yaml
 #
-# In GitHub Actions, add secrets SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD (or pre-bake SOLR_AUTH_PREFIX).
+# GitHub Actions: set Environment secrets SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD (same names as job env).
+# If Solr has no basic auth, leave both unset and replace the three Solr value lines to drop the user:pass@ prefix.
+#
+# Solr bootstrap initContainer (solrInit) defaults are in charts/demo-dataverse/values.yaml (off unless you
+# override). To enable, add only what you need, e.g.:
+#   solrInit:
+#     enabled: true
+#     zkConnect: "${ZK_CONNECT}"   # export ZK_CONNECT before envsubst, or use a literal
+#     confConfigMap: your-dataverse-solr-conf
 
 awsS3:
   enabled: true
@@ -62,19 +68,19 @@ extraEnvVars:
   - name: DATAVERSE_DB_HOST
     value: acid-postgres-cluster-delta.postgres.svc.cluster.local
   - name: DATAVERSE_DB_USER
-    value: dataverse
+    value: demo-dataverse
   - name: DATAVERSE_DB_PASSWORD
     value: $DB_PASSWORD
   - name: DATAVERSE_DB_NAME
-    value: demo_dataverse_besties
+    value: demo-dataverse
   - name: POSTGRES_SERVER
     value: acid-postgres-cluster-delta.postgres.svc.cluster.local
   - name: POSTGRES_PORT
     value: "5432"
   - name: POSTGRES_DATABASE
-    value: demo_dataverse_besties
+    value: demo-dataverse
   - name: POSTGRES_USER
-    value: dataverse
+    value: demo-dataverse
   - name: POSTGRES_PASSWORD
     value: $DB_PASSWORD
   - name: PGPASSWORD

@@ -6,7 +6,7 @@
 #   ./ops/render-besties-deploy.sh
 #   ./ops/render-besties-deploy.sh /path/to/out.yaml
 #
-# Optional Solr basic auth: SOLR_ADMIN_USER / SOLR_ADMIN_PASSWORD or SOLR_AUTH_PREFIX
+# Optional Solr basic auth: export SOLR_ADMIN_USER and SOLR_ADMIN_PASSWORD (substituted into Solr URLs in the tmpl)
 # Optional: export DOLLAR='$' (script sets this if unset)
 
 set -euo pipefail

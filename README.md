@@ -94,6 +94,10 @@ Requires Docker Compose v2 **with `depends_on: condition: service_completed_succ
 - **`config/schema.xml`** — Solr schema fragment mounted into the Solr image.
 - **`triggers/`** — SQL/Python helpers mounted where the compose file expects them.
 
+### Helm / Kubernetes: deploy checklist
+
+**[`ops/kubernetes-deploy-checklist.md`](ops/kubernetes-deploy-checklist.md)** — GitHub Environment secrets, cluster Secrets (S3, optional Solr init / API token), then run Actions → Deploy.
+
 ### Helm / Kubernetes: AWS S3 secrets
 
 For cluster deploys, object storage uses an out-of-band Kubernetes Secret and Helm `awsS3` values. Step-by-step (bucket, IAM, `kubectl create secret`, values alignment) is in **`ops/aws-s3-kubernetes-setup.md`**.
