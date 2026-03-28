@@ -225,7 +225,8 @@ services:
         - ${CONFIGURATION_PATH}/secrets:/secrets
         - dataverse_files:/data
         # Branding: URL /logos/* -> DATAVERSE_FILES_DOCROOT (/dv/docroot). Mount only logos/navbar so
-        # /dv/docroot/logos/<id>/... (theme uploads) stays on the container filesystem.
+        # /dv/docroot/logos/<id>/... (theme uploads) stays on the container filesystem. Put splash image
+        # there too as splash-hero.png (same mount as logo.png — avoids a second volume).
         - ./branding/docroot/logos/navbar:/dv/docroot/logos/navbar:ro
         - ./branding/docroot/branding:/dv/docroot/branding:ro
         - ./init.d:/opt/payara/init.d

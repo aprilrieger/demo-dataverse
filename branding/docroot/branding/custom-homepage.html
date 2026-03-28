@@ -1,0 +1,154 @@
+<!-- :HomePageCustomizationFile — Demo homepage. -->
+<!-- Ops: featured PIDs in logos/navbar/homepage-enhance.js; verify dataset.xhtml?ownerId=1 for root id. -->
+<div xmlns="http://www.w3.org/1999/xhtml" class="dv-demo-home">
+  <section id="hero" class="dv-demo-hero dv-demo-hero--condensed" aria-labelledby="dv-demo-hero-heading">
+    <div class="dv-demo-hero__bg" aria-hidden="true"></div>
+    <div class="dv-demo-hero__inner dv-demo-hero__grid">
+      <div class="dv-demo-hero__copy">
+        <h1 id="dv-demo-hero-heading" class="dv-demo-hero__h1">Try Dataverse on a live demo</h1>
+        <p class="dv-demo-hero__sub">
+          Decide faster: use real search, collections, and (with a free account) deposits—without standing up your own environment.
+        </p>
+        <p class="dv-demo-hero__note">Evaluation only. Data may be reset. Do not use for production or sensitive content.</p>
+        <div class="dv-demo-hero__actions">
+          <a href="/dataverse/root" class="dv-demo-btn dv-demo-btn--primary">Browse collections</a>
+          <a href="/dataverse.xhtml" class="dv-demo-btn dv-demo-btn--secondary">Open search</a>
+        </div>
+        <p class="dv-demo-hero__inline-links">
+          <a href="/dataverseuser.xhtml?editMode=CREATE&amp;redirectPage=%2Fdataverse.xhtml" class="dv-demo-text-link">Sign up (free)</a>
+          <span class="dv-demo-hero__inline-sep" aria-hidden="true">·</span>
+          <a href="/loginpage.xhtml" class="dv-demo-text-link">Log in</a>
+          <span class="dv-demo-hero__inline-sep" aria-hidden="true">·</span>
+          <a href="/dataset.xhtml?ownerId=1" class="dv-demo-text-link">New dataset</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="trust" class="dv-demo-section dv-demo-section--alt" aria-labelledby="dv-demo-trust-heading">
+    <div class="dv-demo-section-inner">
+      <h2 id="dv-demo-trust-heading" class="dv-demo-h2">What Dataverse gives you (check the UI)</h2>
+      <ul class="dv-demo-trust-grid">
+        <li class="dv-demo-trust-tile">
+          <h3 class="dv-demo-trust-tile__title">Identifiers</h3>
+          <p class="dv-demo-trust-tile__body">Stable citation links—see them on dataset pages.</p>
+        </li>
+        <li class="dv-demo-trust-tile">
+          <h3 class="dv-demo-trust-tile__title">Metadata</h3>
+          <p class="dv-demo-trust-tile__body">Structured blocks you can map to your policies.</p>
+        </li>
+        <li class="dv-demo-trust-tile">
+          <h3 class="dv-demo-trust-tile__title">Versions</h3>
+          <p class="dv-demo-trust-tile__body">History and diffs when deposits change.</p>
+        </li>
+        <li class="dv-demo-trust-tile">
+          <h3 class="dv-demo-trust-tile__title">Access</h3>
+          <p class="dv-demo-trust-tile__body">File- and dataset-level rules—test with a logged-in user.</p>
+        </li>
+      </ul>
+      <p class="dv-demo-boundary-note">Production adds your SSO, retention, integrations, and support model—this instance is for hands-on evaluation only.</p>
+    </div>
+  </section>
+
+  <!-- Explore by topic: off — remove hidden + dv-demo-section--explore-off to restore -->
+  <section id="explore-topics" class="dv-demo-section dv-demo-section--explore-off" aria-labelledby="dv-demo-topics-heading" hidden="hidden">
+    <div class="dv-demo-section-inner">
+      <h2 id="dv-demo-topics-heading" class="dv-demo-h2">Explore by topic</h2>
+      <p class="dv-demo-section-sub">Demo shortcuts into search by subject—results depend on what’s published in this instance.</p>
+      <ul class="dv-demo-topic-grid">
+        <li>
+          <a class="dv-demo-topic-tile" href="/dataverse.xhtml?q=&amp;fq0=subject_ss%3A%22Earth+and+Environmental+Sciences%22">
+            <span class="dv-demo-topic-tile__title">Climate &amp; environment</span>
+            <span class="dv-demo-topic-tile__sub">Environmental monitoring, models, and field data</span>
+          </a>
+        </li>
+        <li>
+          <a class="dv-demo-topic-tile" href="/dataverse.xhtml?q=&amp;fq0=subject_ss%3A%22Medicine%2C+Health+and+Life+Sciences%22">
+            <span class="dv-demo-topic-tile__title">Health &amp; demographics</span>
+            <span class="dv-demo-topic-tile__sub">Population health and related datasets</span>
+          </a>
+        </li>
+        <li>
+          <a class="dv-demo-topic-tile" href="/dataverse.xhtml?q=&amp;fq0=subject_ss%3A%22Social+Sciences%22">
+            <span class="dv-demo-topic-tile__title">Social science</span>
+            <span class="dv-demo-topic-tile__sub">Surveys, qualitative deposits, and related work</span>
+          </a>
+        </li>
+        <li>
+          <a class="dv-demo-topic-tile" href="/dataverse.xhtml?q=&amp;fq0=subject_ss%3A%22Education%22">
+            <span class="dv-demo-topic-tile__title">Education &amp; learning</span>
+            <span class="dv-demo-topic-tile__sub">Teaching, learning, and institutional research</span>
+          </a>
+        </li>
+        <li>
+          <a class="dv-demo-topic-tile" href="/dataverse.xhtml?q=&amp;fq0=subject_ss%3A%22Law%22">
+            <span class="dv-demo-topic-tile__title">Government &amp; civic data</span>
+            <span class="dv-demo-topic-tile__sub">Policy-relevant and public-sector datasets</span>
+          </a>
+        </li>
+        <li>
+          <a class="dv-demo-topic-tile" href="/dataverse/root">
+            <span class="dv-demo-topic-tile__title">Local &amp; regional collections</span>
+            <span class="dv-demo-topic-tile__sub">Place-based and community datasets</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="featured" class="dv-demo-section" aria-labelledby="dv-demo-featured-heading">
+    <div class="dv-demo-section-inner">
+      <div class="dv-demo-datasets-split">
+        <div class="dv-demo-datasets-split__col dv-demo-datasets-split__col--featured">
+          <h2 id="dv-demo-featured-heading" class="dv-demo-h2 dv-demo-h2--pinned">
+            <span class="dv-demo-pin-wrap" aria-hidden="true">
+              <svg class="dv-demo-pin-svg" viewBox="0 0 24 28" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                <circle cx="12" cy="8.5" r="5.35" fill="currentColor" />
+                <ellipse cx="9.65" cy="6.65" rx="1.5" ry="1.05" fill="#ffffff" opacity="0.4" />
+                <path
+                  d="M10 14.25h4v9.9a1.15 1.15 0 0 1-.5.95L12 26.2l-1.5-1.1a1.15 1.15 0 0 1-.5-.95v-9.9z"
+                  fill="currentColor"
+                  opacity="0.88"
+                />
+                <path d="M12 24.5v-9.25h-1.25v9.25c0 .2.1.35.25.45l1 .73 1-.73c.15-.1.25-.25.25-.45v-9.25H12z" fill="#ffffff" opacity="0.12" />
+              </svg>
+            </span>
+            <span class="dv-demo-h2__text">Pinned examples</span>
+          </h2>
+          <p class="dv-demo-section-sub">When seeded, shows how a finished deposit looks.</p>
+          <div id="dv-demo-featured-cards" class="dv-demo-card-grid" data-demo-cards="featured">
+            <article class="dv-demo-dataset-card dv-demo-dataset-card--placeholder">
+              <h3 class="dv-demo-dataset-card__title">
+                <a href="/dataverse/root">Browse collections</a>
+              </h3>
+              <p class="dv-demo-dataset-card__meta">No featured PIDs configured yet.</p>
+            </article>
+          </div>
+        </div>
+        <div class="dv-demo-datasets-split__col dv-demo-datasets-split__col--recent">
+          <h2 id="dv-demo-recent-heading" class="dv-demo-h2 dv-demo-h2--sub">Latest in this demo</h2>
+          <p class="dv-demo-section-sub">Newest published datasets in this instance only.</p>
+          <div id="dv-demo-recent-cards" class="dv-demo-card-grid" data-demo-cards="recent" aria-busy="true">
+            <p id="dv-demo-recent-fallback" class="dv-demo-cards-fallback">Loading…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="dv-demo-native-nav" aria-label="Demo environment notice">
+    <div class="dv-demo-section-inner">
+      <p class="dv-demo-native-nav__one">
+        Demo instance. Not for production use. Content may be removed or refreshed without notice.
+      </p>
+      <p class="dv-demo-native-nav__sub">
+        Do not deposit confidential, personal, or restricted data in this environment.
+      </p>
+      <p class="dv-demo-native-nav__sub dv-demo-native-nav__sub--tight">
+        Hosted by <strong>Notch8</strong>, your partner in digital preservation.
+      </p>
+    </div>
+  </nav>
+
+  <script xmlns="http://www.w3.org/1999/xhtml" type="text/javascript" src="/logos/navbar/homepage-enhance.js"></script>
+</div>
