@@ -16,5 +16,4 @@ database-data/
 docker-dev-volumes/
 minio-data/
 data/
-docroot/
 hack/

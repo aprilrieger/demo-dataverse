@@ -1,0 +1,2127 @@
+/* :StyleCustomizationFile — marketing homepage, navbar, footer */
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+:root {
+  --n8-text: #5a4d48;
+  --n8-orange: #d96932;
+  --n8-teal: #047857;
+  --n8-bg: #ffffff;
+  --n8-muted: rgba(90, 77, 72, 0.75);
+  --n8-splash-bg-image: url("/logos/navbar/splash-hero.png");
+  /* Horizontal gutters aligned with Bootstrap .container (same as navbar) */
+  --dv-demo-container-gutter: 15px;
+  /* Navbar row sizing (define before --dv-demo-navbar-offset, which references these) */
+  --dv-demo-nav-container-pad-y: 10px;
+  --dv-demo-nav-border-below: 3px; /* matches #navbarFixed.navbar border-bottom width */
+  --dv-demo-nav-chrome-height: 58px;
+  --dv-demo-nav-chrome-max: 58px;
+  --dv-demo-nav-control-height: 40px;
+  /* Total fixed navbar height (viewport) — chrome + vertical padding + bottom border */
+  --dv-demo-navbar-offset: calc(
+    var(--dv-demo-nav-chrome-max) + (2 * var(--dv-demo-nav-container-pad-y)) + var(--dv-demo-nav-border-below)
+  );
+  /* Min-height hero: reserve fixed navbar + small buffer (tune if copy clips under nav) */
+  --dv-demo-hero-fill-chrome: calc(var(--dv-demo-navbar-offset) + 2.5rem);
+  --dv-demo-section-pad: clamp(2.5rem, 5vw, 4rem);
+  /* Alternating homepage section bands (#trust, #featured, etc.) */
+  --dv-demo-section-alt-bg: #f8f8f8;
+
+  /* DataverseUp + site-wide primary (emerald); --n8-teal references same hue above */
+  --dvu-primary: #047857;
+  --dvu-primary-hover: #059669;
+  --dvu-primary-dark: #065f46;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --dv-demo-nav-container-pad-y: 8px;
+    --dv-demo-nav-chrome-height: 58px;
+    --dv-demo-nav-chrome-max: 58px;
+  }
+}
+
+/* --- Legacy header wrapper (if any) --- */
+.local-branding-header {
+  background: #f7f5f4;
+  border-bottom: 1px solid rgba(90, 77, 72, 0.12);
+  margin: 0;
+  padding: 0;
+  font-size: 0.88rem;
+  color: var(--n8-muted);
+}
+
+.local-branding-header .container {
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+}
+
+.local-branding-header code,
+.local-branding-footer code {
+  background: rgba(90, 77, 72, 0.08);
+  padding: 0.1rem 0.35rem;
+  font-size: 0.85em;
+  border-radius: 3px;
+}
+
+/* --- Footer --- */
+.local-branding-footer {
+  border-top: 1px solid rgba(90, 77, 72, 0.12);
+  margin-top: 1.5rem;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--n8-muted);
+}
+
+.local-branding-footer .container {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.dv-demo-legal-footer__line {
+  margin: 0 0 0.5rem;
+  max-width: 52rem;
+  color: var(--n8-text) !important;
+  font-weight: 500;
+}
+
+.dv-demo-legal-footer__credit {
+  margin: 0.75rem 0 0;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(90, 77, 72, 0.1);
+}
+
+.local-branding-footer a {
+  color: var(--n8-teal) !important;
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+.local-branding-footer a:hover,
+.local-branding-footer a:focus {
+  text-decoration: underline !important;
+}
+
+/* --- Marketing homepage --- */
+/* Dataverse main slot is #content.container (Bootstrap: ~1170px cap + 15px gutters).
+   That stacks with our inner max-width and feels “double margined.” Break out to full width
+   for the custom homepage and login body only. */
+/* Use :has(.dv-demo-home) not :has(> …): Dataverse may wrap the custom homepage in an extra node. */
+#content.container:has(.dv-demo-home),
+#content.container:has(.dvup-homepage),
+#content.container:has(> #login-container) {
+  max-width: none;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+.dv-demo-home {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--n8-text);
+  /* Slightly larger than browser default — most blocks still set rem explicitly below */
+  font-size: 1.0625rem;
+  line-height: 1.58;
+  width: 100%;
+  box-sizing: border-box;
+  /* Avoid rare 100vw hero breakout causing horizontal scroll */
+  overflow-x: clip;
+}
+
+/* Dataverse stock CSS uses serif headings — force one type system for the marketing homepage */
+#content.container .dv-demo-home,
+#content.container .dv-demo-home h1,
+#content.container .dv-demo-home h2,
+#content.container .dv-demo-home h3,
+#content.container .dv-demo-home h4,
+#content.container .dv-demo-home p,
+#content.container .dv-demo-home li,
+#content.container .dv-demo-home blockquote,
+#content.container .dv-demo-home label,
+#content.container .dv-demo-home strong,
+#content.container .dv-demo-home input,
+#content.container .dv-demo-home button {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+#content.container .dvup-homepage,
+#content.container .dvup-homepage h1,
+#content.container .dvup-homepage h2,
+#content.container .dvup-homepage h3,
+#content.container .dvup-homepage h4,
+#content.container .dvup-homepage p,
+#content.container .dvup-homepage li,
+#content.container .dvup-homepage label,
+#content.container .dvup-homepage strong,
+#content.container .dvup-homepage input,
+#content.container .dvup-homepage textarea,
+#content.container .dvup-homepage button {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* --------------------------------------------------------------------------
+   Bootstrap 3 — remove gradients; align .btn with --dvu-primary (loads before this file)
+   -------------------------------------------------------------------------- */
+.btn-primary {
+  background-color: var(--dvu-primary-dark) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-dark) !important;
+  color: #fff !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.open > .dropdown-toggle.btn-primary {
+  background-color: var(--dvu-primary-hover) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-hover) !important;
+  color: #fff !important;
+}
+
+.btn-default {
+  background-color: #fff !important;
+  background-image: none !important;
+  border: 2px solid var(--dvu-primary) !important;
+  color: var(--dvu-primary) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.btn-default:hover,
+.btn-default:focus {
+  background-color: rgba(4, 120, 87, 0.09) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-hover) !important;
+  color: var(--dvu-primary-hover) !important;
+}
+
+.btn-default:active,
+.btn-default.active,
+.open > .dropdown-toggle.btn-default {
+  background-color: rgba(4, 120, 87, 0.16) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-dark) !important;
+  color: var(--dvu-primary-dark) !important;
+}
+
+/* ==========================================================================
+   DataverseUp marketing homepage (.dvup-*)
+   ========================================================================== */
+
+.dvup-homepage {
+  color: var(--n8-text);
+  font-size: 1.0625rem;
+  line-height: 1.58;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+.dvup-page-shell {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.dvup-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding-left: 15px;
+  padding-right: 15px;
+  box-sizing: border-box;
+}
+
+.dvup-section {
+  padding: clamp(3rem, 6vw, 4rem) 0;
+}
+
+.dvup-section--alt {
+  background: #f8f8f8;
+  border-top: 1px solid rgba(90, 77, 72, 0.08);
+  border-bottom: 1px solid rgba(90, 77, 72, 0.08);
+}
+
+.dvup-section--white {
+  background: #fff;
+}
+
+.dvup-section-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.dvup-eyebrow {
+  color: var(--dvu-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 0.75rem;
+}
+
+.dvup-h1 {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 1rem;
+  color: var(--n8-text);
+}
+
+.dvup-h2 {
+  font-size: clamp(1.65rem, 3vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.85rem;
+  color: var(--n8-text);
+}
+
+.dvup-h3,
+.dvup-card__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--n8-text);
+}
+
+.dvup-lead {
+  color: var(--n8-muted);
+  font-size: 1.1rem;
+  line-height: 1.65;
+  max-width: 42rem;
+  margin: 0 0 1.5rem;
+}
+
+.dvup-body {
+  color: var(--n8-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.dvup-text-center {
+  text-align: center;
+}
+
+.dvup-text-center .dvup-lead {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dvup-hero {
+  background: linear-gradient(180deg, #fff 0%, #f9fafb 100%);
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid rgba(90, 77, 72, 0.1);
+}
+
+.dvup-hero__grid {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+}
+
+.dvup-hero__copy,
+.dvup-hero__media {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.dvup-hero__copy {
+  width: 56%;
+  padding-right: 2rem;
+}
+
+.dvup-hero__media {
+  width: 44%;
+  text-align: right;
+}
+
+.dvup-hero__logo {
+  max-width: 100%;
+  height: auto;
+  max-height: 180px;
+}
+
+.dvup-hero__actions {
+  margin-top: 1.5rem;
+}
+
+.dvup-hero__actions .btn {
+  margin-right: 0.65rem;
+  margin-bottom: 0.65rem;
+  min-width: 8.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.dvup-hero__note {
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--n8-muted);
+}
+
+.dvup-card-grid {
+  margin-top: 2rem;
+}
+
+.dvup-card {
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
+  height: 100%;
+  margin-bottom: 1rem;
+}
+
+.dvup-card__body {
+  padding: 1.5rem;
+}
+
+.dvup-card__step {
+  display: inline-block;
+  background: var(--dvu-primary-dark);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+
+.dvup-card__text {
+  color: var(--n8-muted);
+  font-size: 0.98rem;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.dvup-form-panel {
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
+  padding: 1.75rem;
+}
+
+.dvup-form-panel .form-group {
+  margin-bottom: 1rem;
+}
+
+.dvup-form-panel label {
+  font-weight: 600;
+  color: var(--n8-text);
+}
+
+.dvup-form-panel .form-control:focus {
+  border-color: var(--dvu-primary);
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.2);
+}
+
+.dvup-pill-links {
+  margin-top: 1.5rem;
+}
+
+.dvup-pill-link {
+  display: inline-block;
+  margin: 0 0.5rem 0.75rem 0;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 2px solid var(--dvu-primary);
+  color: var(--dvu-primary) !important;
+  background: #fff;
+  text-decoration: none !important;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.dvup-pill-link:hover,
+.dvup-pill-link:focus {
+  background: rgba(4, 120, 87, 0.09);
+  border-color: var(--dvu-primary-hover);
+  color: var(--dvu-primary-hover) !important;
+}
+
+.dvup-footer {
+  padding: 2rem 0 2.5rem;
+  border-top: 1px solid rgba(90, 77, 72, 0.1);
+  background: #fff;
+}
+
+.dvup-footer__small {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--n8-muted);
+}
+
+@media (max-width: 991px) {
+  .dvup-hero__grid,
+  .dvup-hero__copy,
+  .dvup-hero__media {
+    display: block;
+    width: 100%;
+  }
+
+  .dvup-hero__copy {
+    padding-right: 0;
+    margin-bottom: 1.75rem;
+  }
+
+  .dvup-hero__media {
+    text-align: left;
+  }
+
+  .dvup-hero__logo {
+    max-height: 140px;
+  }
+}
+
+@media (max-width: 767px) {
+  .dvup-hero__actions .btn {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+/* Navbar: same type + weight as body sections (still Dataverse chrome, not the custom homepage root) */
+#navbarFixed.navbar {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  background: #fff !important;
+  /* Accent strip — same emerald as primary actions (avoids orange + default BS blue clash) */
+  border-bottom: 3px solid var(--dvu-primary) !important;
+}
+
+/* Desktop: one horizontal row — logo, links, search, Get Support share vertical center (Bootstrap 3 float → flex) */
+@media (min-width: 768px) {
+  /* Comfortable bar height: content uses --dv-demo-nav-chrome-*; padding keeps it from feeling cramped */
+  #navbarFixed.navbar {
+    min-height: calc(var(--dv-demo-nav-chrome-max) + (2 * var(--dv-demo-nav-container-pad-y))) !important;
+  }
+
+  #navbarFixed.navbar > .container {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    padding-top: var(--dv-demo-nav-container-pad-y);
+    padding-bottom: var(--dv-demo-nav-container-pad-y);
+  }
+
+  #navbarFixed.navbar .navbar-header {
+    float: none !important;
+    flex: 0 0 auto;
+    margin: 0;
+  }
+
+  #navbarFixed.navbar .navbar-collapse {
+    float: none !important;
+    flex: 1 1 auto;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end;
+    width: auto !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #navbarFixed.navbar .navbar-collapse.collapse {
+    display: flex !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #navbarFixed.navbar ul.nav.navbar-nav {
+    float: none !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin: 0 !important;
+  }
+
+  #navbarFixed.navbar .navbar-nav > li {
+    float: none !important;
+  }
+
+  /* Top-level links: same vertical band as logo + search (no 15px/15px pill taller than chrome) */
+  #navbarFixed.navbar .navbar-nav > li > a {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: var(--dv-demo-nav-chrome-height);
+    max-height: min(var(--dv-demo-nav-chrome-height), var(--dv-demo-nav-chrome-max)) !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+    line-height: 1.2 !important;
+    font-size: 1rem !important;
+  }
+
+  #navbarFixed.navbar .navbar-nav > li.dropdown > a.dropdown-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: var(--dv-demo-nav-chrome-height);
+    max-height: min(var(--dv-demo-nav-chrome-height), var(--dv-demo-nav-chrome-max)) !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    font-size: 1rem !important;
+  }
+}
+
+#navbarFixed.navbar .navbar-nav > li > a {
+  font-weight: 500 !important;
+  color: var(--n8-text) !important;
+}
+
+@media (max-width: 767px) {
+  #navbarFixed.navbar .navbar-nav > li > a {
+    font-size: 0.9375rem !important;
+  }
+}
+
+#navbarFixed.navbar .navbar-nav > li > a:hover,
+#navbarFixed.navbar .navbar-nav > li > a:focus {
+  color: var(--n8-orange) !important;
+}
+
+/* Dropdown menus — match top-level nav font size & family (Add Data, etc.) */
+#navbarFixed.navbar .navbar-nav .dropdown-menu {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 1rem !important;
+  border-radius: 8px;
+  border: 1px solid rgba(90, 77, 72, 0.14);
+  box-shadow: 0 8px 24px rgba(45, 42, 40, 0.12);
+  padding: 0.35rem 0;
+}
+
+#navbarFixed.navbar .navbar-nav .dropdown-menu > li > a {
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  color: var(--n8-text) !important;
+  padding: 0.5rem 1rem !important;
+}
+
+#navbarFixed.navbar .navbar-nav .dropdown-menu > li > a:hover,
+#navbarFixed.navbar .navbar-nav .dropdown-menu > li > a:focus {
+  color: var(--n8-orange) !important;
+  background: rgba(217, 105, 50, 0.08) !important;
+}
+
+#navbarFixed.navbar .navbar-nav .dropdown-header {
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--n8-muted) !important;
+  padding: 0.45rem 1rem 0.25rem !important;
+}
+
+/* Inline navbar search — Bootstrap 3 input-group (navbar-enhance.js) */
+#navbarFixed.navbar .navbar-nav > li.dv-demo-nav-search-item {
+  display: flex;
+  align-items: center;
+  padding-left: 0.5rem;
+  padding-right: 0.85rem;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-form {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup.input-group {
+  width: calc(12rem + 20px);
+  max-width: calc(min(28vw, 14rem) + 20px);
+  margin-bottom: 0;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .input-group-btn {
+  vertical-align: middle;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .form-control.dv-demo-nav-search-input {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  box-sizing: border-box !important;
+  height: var(--dv-demo-nav-control-height) !important;
+  min-height: var(--dv-demo-nav-control-height) !important;
+  max-height: var(--dv-demo-nav-control-height) !important;
+  padding: 0 0.75rem !important;
+  line-height: 1.2 !important;
+  color: var(--n8-text) !important;
+  background-color: #fff !important;
+  border: 1px solid #ccc !important;
+  border-right: 0 !important;
+  border-radius: 4px 0 0 4px !important;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.04) !important;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .form-control.dv-demo-nav-search-input::placeholder {
+  color: rgba(90, 77, 72, 0.55);
+  font-weight: 400;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .form-control.dv-demo-nav-search-input:focus {
+  border-color: var(--n8-orange) !important;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--n8-orange) !important;
+  z-index: 3;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .input-group-btn > .btn.dv-demo-nav-search-submit {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 2.4rem;
+  height: var(--dv-demo-nav-control-height) !important;
+  min-height: var(--dv-demo-nav-control-height) !important;
+  max-height: var(--dv-demo-nav-control-height) !important;
+  padding: 0 0.65rem !important;
+  line-height: 1 !important;
+  color: #fff !important;
+  background: var(--n8-teal) !important;
+  background-image: none !important;
+  border-color: var(--n8-teal) !important;
+  border-radius: 0 4px 4px 0 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .input-group-btn > .btn.dv-demo-nav-search-submit .glyphicon {
+  color: #fff !important;
+  font-size: 13px;
+  line-height: 1;
+  top: 0 !important;
+  position: relative;
+}
+
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .input-group-btn > .btn.dv-demo-nav-search-submit:hover,
+#navbarFixed.navbar .dv-demo-nav-search-inputgroup .input-group-btn > .btn.dv-demo-nav-search-submit:focus {
+  color: #fff !important;
+  background: #1f4747 !important;
+  border-color: #1a3d3d !important;
+}
+
+@media (max-width: 767px) {
+  #navbarFixed.navbar .navbar-nav > li.dv-demo-nav-search-item {
+    width: 100%;
+    padding: 0.65rem 0 0.35rem;
+    align-items: stretch;
+  }
+
+  #navbarFixed.navbar .dv-demo-nav-search-form {
+    width: 100%;
+  }
+
+  #navbarFixed.navbar .dv-demo-nav-search-inputgroup.input-group {
+    width: 100%;
+    max-width: none;
+    display: table;
+  }
+
+  #navbarFixed.navbar .dv-demo-nav-search-inputgroup .form-control.dv-demo-nav-search-input {
+    display: table-cell;
+    width: 100%;
+    float: none;
+  }
+
+  #navbarFixed.navbar .dv-demo-nav-search-inputgroup .input-group-btn {
+    width: 1%;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  #navbarFixed.navbar .dv-demo-nav-search-inputgroup .input-group-btn > .btn.dv-demo-nav-search-submit {
+    min-width: 2.75rem;
+  }
+}
+
+/*
+ * Dataverse puts classes on the <img> itself (dataverse_header.xhtml):
+ *   <a href="/"><h:graphicImage styleClass="navbar-brand custom-logo" .../></a>
+ * So .navbar-brand > img never matches; do not use display:flex on the img.
+ */
+#navbarFixed.navbar .navbar-header > a {
+  display: flex !important;
+  align-items: center !important;
+  line-height: 0 !important;
+}
+
+#navbarFixed.navbar .navbar-brand:not(img) {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  color: var(--n8-text) !important;
+  display: flex !important;
+  align-items: center;
+  min-height: var(--dv-demo-nav-chrome-max);
+}
+
+/* Logo PNG — img carries .navbar-brand.custom-logo (dataverse_header.xhtml) */
+#navbarFixed .navbar-brand.custom-logo {
+  display: block !important;
+  box-sizing: content-box !important;
+  width: auto !important;
+  height: 40px !important;
+  max-width: min(192px, calc(100vw - 8rem)) !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  padding: 5px !important;
+  margin: 0 !important;
+  line-height: 0 !important;
+}
+
+@media (max-width: 767px) {
+  #navbarFixed .navbar-brand.custom-logo {
+    max-width: min(160px, calc(100vw - 5.5rem)) !important;
+  }
+}
+
+/* “Get Support” — last item in nav, orange button (DOM order set by logos/navbar/navbar-enhance.js) */
+#navbarFixed.navbar .navbar-nav > li.dv-demo-nav-support-item {
+  display: flex !important;
+  align-items: center !important;
+  margin-left: 0.75rem;
+}
+
+#navbarFixed.navbar .navbar-nav > li.dv-demo-nav-support-item > a.dv-demo-nav-support-btn {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  height: var(--dv-demo-nav-control-height) !important;
+  min-height: var(--dv-demo-nav-control-height) !important;
+  max-height: var(--dv-demo-nav-control-height) !important;
+  padding: 0 0.85rem !important;
+  border-radius: 4px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+  color: #fff !important;
+  background: var(--n8-orange) !important;
+  background-image: none !important;
+  border: 1px solid #c45a2a !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+  vertical-align: middle;
+}
+
+#navbarFixed.navbar .navbar-nav > li.dv-demo-nav-support-item > a.dv-demo-nav-support-btn:hover,
+#navbarFixed.navbar .navbar-nav > li.dv-demo-nav-support-item > a.dv-demo-nav-support-btn:focus {
+  color: #fff !important;
+  background: #c45a2a !important;
+}
+
+@media (max-width: 767px) {
+  #navbarFixed.navbar .navbar-nav > li.dv-demo-nav-support-item {
+    margin-left: 0;
+  }
+
+  #navbarFixed.navbar .navbar-nav > li.dv-demo-nav-support-item > a.dv-demo-nav-support-btn {
+    display: flex !important;
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+}
+
+/* Same widths as #navbarFixed .container (Bootstrap 3) — logo, nav, hero, sections line up */
+.dv-demo-section-inner,
+.dv-demo-hero__inner {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--dv-demo-container-gutter);
+  padding-right: var(--dv-demo-container-gutter);
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .dv-demo-section-inner,
+  .dv-demo-hero__inner {
+    max-width: 750px;
+  }
+}
+
+@media (min-width: 992px) {
+  .dv-demo-section-inner,
+  .dv-demo-hero__inner {
+    max-width: 970px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .dv-demo-section-inner,
+  .dv-demo-hero__inner {
+    max-width: 1170px;
+  }
+}
+
+/*
+ * Custom homepage: #content.container drops horizontal padding (full-bleed). A centered max-width
+ * block + 15px padding then starts copy too far left vs #navbarFixed > .container (logo uses the
+ * same inset as Bootstrap’s .container). Mirror that inset explicitly (750 / 970 / 1170 breakpoints).
+ */
+#content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+#content.container:has(.dv-demo-home) .dv-demo-section-inner {
+  max-width: none;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
+    padding-left: max(15px, calc((100% - 750px) / 2 + 15px));
+    padding-right: max(15px, calc((100% - 750px) / 2 + 15px));
+  }
+}
+
+@media (min-width: 992px) {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
+    padding-left: max(15px, calc((100% - 970px) / 2 + 15px));
+    padding-right: max(15px, calc((100% - 970px) / 2 + 15px));
+  }
+}
+
+@media (min-width: 1200px) {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
+    padding-left: max(15px, calc((100% - 1170px) / 2 + 15px));
+    padding-right: max(15px, calc((100% - 1170px) / 2 + 15px));
+  }
+}
+
+@media (max-width: 767px) {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
+    padding-left: max(var(--dv-demo-container-gutter), 1.35rem, env(safe-area-inset-left, 0px));
+    padding-right: max(var(--dv-demo-container-gutter), 1.35rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+.dv-demo-h2 {
+  font-size: clamp(1.85rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
+  color: var(--n8-text);
+}
+
+.dv-demo-h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 2rem 0 0.35rem;
+  color: var(--n8-text);
+}
+
+/* Subsection title — same voice as H2, slightly smaller (e.g. “Recently added” under Featured) */
+.dv-demo-h2--sub {
+  font-size: clamp(1.55rem, 3vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.22;
+  margin: 2.5rem 0 0.5rem;
+  color: var(--n8-text);
+}
+
+/* Pinned examples — thumbtack beside heading */
+.dv-demo-h2--pinned {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.dv-demo-pin-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--n8-orange);
+  transform: rotate(-10deg);
+  filter: drop-shadow(0 2px 3px rgba(217, 105, 50, 0.28));
+  line-height: 0;
+}
+
+.dv-demo-pin-svg {
+  width: 1.55rem;
+  height: 1.8rem;
+  flex-shrink: 0;
+}
+
+.dv-demo-h2__text {
+  line-height: 1.2;
+}
+
+.dv-demo-section-sub {
+  margin: 0 0 1.5rem;
+  color: var(--n8-muted);
+  font-size: 1.125rem;
+  max-width: 40rem;
+}
+
+.dv-demo-section {
+  padding: var(--dv-demo-section-pad) 0;
+}
+
+.dv-demo-section--alt {
+  background: var(--dv-demo-section-alt-bg);
+  border-top: 1px solid rgba(90, 77, 72, 0.08);
+  border-bottom: 1px solid rgba(90, 77, 72, 0.08);
+}
+
+/* Hero — full width of #content. Grid stacks bg + inner in one row so inner can align-self: center
+   (flex + position:absolute sibling was leaving the block visually low in some engines). */
+.dv-demo-hero {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  min-height: max(28rem, calc(100vh - var(--dv-demo-hero-fill-chrome)));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  align-items: stretch;
+}
+
+@supports (height: 100dvh) {
+  .dv-demo-hero {
+    min-height: max(28rem, calc(100dvh - var(--dv-demo-hero-fill-chrome)));
+  }
+}
+
+.dv-demo-hero__bg {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: stretch;
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  min-height: 0;
+  pointer-events: none;
+  background-color: var(--n8-bg);
+  background-image: var(--n8-splash-bg-image);
+  /* Always span full hero width; height follows image aspect ratio (was cover, which crops sides on some viewports) */
+  background-size: 100% auto;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
+/*
+ * Condensed homepage: splash is painted on the <section> (below), not only on .dv-demo-hero__bg.
+ * Some Dataverse layouts left the bg div with no reliable height, so you saw a solid white band
+ * even when /logos/navbar/splash-hero.png returned 200.
+ */
+.dv-demo-hero--condensed .dv-demo-hero__bg {
+  display: none !important;
+}
+
+/* Same cell as bg: stacked over background */
+.dv-demo-hero__inner.dv-demo-hero__grid {
+  grid-column: 1;
+  grid-row: 1;
+  z-index: 1;
+  align-self: start;
+  justify-self: stretch;
+  width: 100%;
+  padding-top: clamp(2.5rem, 6vw, 5rem);
+  padding-bottom: clamp(2.25rem, 5vw, 4.5rem);
+}
+
+/* Tall non-condensed heroes: center inner. Condensed uses 100vh — center copy in that band (see below). */
+@media (min-width: 960px) and (min-height: 720px) {
+  .dv-demo-hero__inner.dv-demo-hero__grid {
+    align-self: center;
+  }
+}
+
+/* Condensed: vertically center headline + CTAs inside the full viewport-height hero */
+.dv-demo-hero--condensed .dv-demo-hero__inner.dv-demo-hero__grid {
+  align-self: center;
+  padding-top: clamp(1.25rem, 4vw, 3rem);
+  padding-bottom: clamp(1.25rem, 4vw, 3rem);
+  background: transparent !important;
+}
+
+.dv-demo-hero__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 2rem clamp(1.5rem, 3vw, 4rem);
+  align-items: start;
+}
+
+/* Two-column hero art + copy — not used on .dv-demo-hero--condensed (homepage keeps single-column at all widths) */
+@media (min-width: 960px) {
+  .dv-demo-hero:not(.dv-demo-hero--condensed) .dv-demo-hero__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, min(32vw, 34rem));
+    align-items: center;
+  }
+}
+
+/* Condensed hero — one column, ROI-first (navbar already has search); full viewport band + splash */
+.dv-demo-hero--condensed {
+  min-height: 100vh;
+  background-color: var(--n8-bg);
+  background-image: var(--n8-splash-bg-image);
+  background-size: cover;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
+@supports (height: 100dvh) {
+  .dv-demo-hero--condensed {
+    min-height: 100dvh;
+  }
+}
+
+.dv-demo-hero--condensed .dv-demo-hero__grid {
+  grid-template-columns: 1fr !important;
+  /* Full width of .dv-demo-hero__inner (same max-width as .dv-demo-section-inner) — was 42rem centered, misaligned vs sections */
+  max-width: none;
+  justify-items: start;
+}
+
+/* Readable measure, flush left — wider + larger type on homepage hero so the band feels filled */
+.dv-demo-hero--condensed .dv-demo-hero__copy {
+  max-width: min(56rem, 100%);
+  margin-left: 0;
+  margin-right: auto;
+  text-align: left;
+  justify-self: start;
+}
+
+.dv-demo-hero--condensed .dv-demo-hero__h1 {
+  font-size: clamp(2.65rem, 6.25vw, 4.65rem);
+  line-height: 1.05;
+  letter-spacing: -0.038em;
+  margin-bottom: 1.35rem;
+}
+
+.dv-demo-hero--condensed .dv-demo-hero__sub {
+  font-size: clamp(1.32rem, 2.35vw, 1.85rem);
+  line-height: 1.48;
+  margin-bottom: 1.2rem;
+  max-width: min(52rem, 100%);
+}
+
+.dv-demo-hero--condensed .dv-demo-hero__note {
+  font-size: clamp(1rem, 1.2vw, 1.125rem);
+  line-height: 1.5;
+  margin-bottom: 1.65rem;
+  max-width: min(48rem, 100%);
+}
+
+.dv-demo-hero--condensed .dv-demo-hero__actions {
+  gap: 1rem 1.35rem;
+}
+
+.dv-demo-hero--condensed .dv-demo-hero__actions .dv-demo-btn {
+  padding: 1.1rem 2rem;
+  font-size: clamp(1.12rem, 1.55vw, 1.38rem);
+  border-radius: 11px;
+}
+
+.dv-demo-hero--condensed .dv-demo-hero__inline-links {
+  margin-top: 1.4rem;
+  font-size: clamp(1.0625rem, 1.4vw, 1.2rem);
+}
+
+.dv-demo-hero__note {
+  font-size: 1rem;
+  color: var(--n8-muted);
+  margin: 0 0 1.2rem;
+  max-width: 40rem;
+  line-height: 1.45;
+}
+
+.dv-demo-hero__inline-links {
+  margin: 1rem 0 0;
+  font-size: 1.0625rem;
+  color: var(--n8-muted);
+}
+
+.dv-demo-hero__inline-sep {
+  color: rgba(90, 77, 72, 0.4);
+  padding: 0 0.3rem;
+}
+
+.dv-demo-native-nav__one {
+  margin: 0 0 0.85rem;
+  max-width: 44rem;
+  color: var(--n8-text);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.dv-demo-native-nav__sub--tight {
+  margin-bottom: 0 !important;
+}
+
+.dv-demo-pill {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff !important;
+  background: var(--n8-orange);
+  border-radius: 4px;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+
+.dv-demo-pill--compact {
+  padding: 0.18rem 0.5rem;
+  font-size: 0.74rem;
+}
+
+.dv-demo-hero .dv-demo-pill:not(.dv-demo-pill--compact) {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.dv-demo-hero__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.75rem;
+  margin: 0 0 0.85rem;
+  max-width: min(52rem, 100%);
+}
+
+.dv-demo-hero__eyebrow-text {
+  font-size: clamp(1.02rem, 1.85vw, 1.25rem);
+  font-weight: 600;
+  color: var(--n8-text);
+  line-height: 1.4;
+}
+
+.dv-demo-hero__h1 {
+  font-size: clamp(3.1rem, 7vw, 5.35rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  margin: 0 0 1.1rem;
+  color: var(--n8-text);
+}
+
+.dv-demo-hero__sub {
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  color: var(--n8-muted);
+  margin: 0 0 1rem;
+  max-width: min(48rem, 100%);
+  line-height: 1.5;
+}
+
+.dv-demo-hero__positioning {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  font-weight: 600;
+  color: var(--n8-text);
+  margin: 0 0 1rem;
+  max-width: min(48rem, 100%);
+  line-height: 1.5;
+}
+
+.dv-demo-hero__boundary {
+  font-size: clamp(1.05rem, 1.75vw, 1.3rem);
+  line-height: 1.5;
+  color: var(--n8-text);
+  margin: 0 0 1.65rem;
+  max-width: min(52rem, 100%);
+  padding: 0.9rem 1.15rem;
+  background: rgba(217, 105, 50, 0.1);
+  border-left: 4px solid var(--n8-orange);
+  border-radius: 0 8px 8px 0;
+}
+
+.dv-demo-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.1rem;
+}
+
+.dv-demo-hero__signup-hint {
+  margin: 1.15rem 0 0;
+  max-width: min(40rem, 100%);
+  font-size: clamp(1.02rem, 1.45vw, 1.12rem);
+  line-height: 1.5;
+  color: var(--n8-muted);
+}
+
+.dv-demo-hero__signup-hint .dv-demo-text-link {
+  font-weight: 700;
+}
+
+.dv-demo-hero__actions .dv-demo-btn {
+  padding: 0.95rem 1.75rem;
+  font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+  border-radius: 10px;
+}
+
+.dv-demo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  text-decoration: none !important;
+  border: 2px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.dv-demo-btn--primary {
+  background: var(--n8-orange);
+  color: #fff !important;
+}
+
+.dv-demo-btn--primary:hover,
+.dv-demo-btn--primary:focus {
+  background: #c45a2a;
+  color: #fff !important;
+}
+
+.dv-demo-btn--secondary {
+  background: var(--n8-teal);
+  color: #fff !important;
+}
+
+.dv-demo-btn--secondary:hover,
+.dv-demo-btn--secondary:focus {
+  background: #1f4747;
+  color: #fff !important;
+}
+
+.dv-demo-btn--outline {
+  background: #fff;
+  color: var(--n8-teal) !important;
+  border-color: var(--n8-teal);
+}
+
+.dv-demo-btn--outline:hover,
+.dv-demo-btn--outline:focus {
+  background: rgba(42, 89, 89, 0.08);
+  color: var(--n8-teal) !important;
+}
+
+.dv-demo-hero-search {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(90, 77, 72, 0.15);
+  border-radius: 14px;
+  padding: 1.25rem 1.35rem 1.35rem;
+  box-shadow: 0 8px 28px rgba(45, 42, 40, 0.08);
+}
+
+.dv-demo-hero-search__demo-tag {
+  margin: 0 0 0.55rem;
+}
+
+.dv-demo-hero-search__label {
+  font-size: clamp(1.12rem, 2vw, 1.4rem);
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: var(--n8-text);
+}
+
+.dv-demo-hero-search__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dv-demo-hero-search__input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-size: clamp(1.02rem, 1.35vw, 1.12rem);
+  border: 1px solid rgba(90, 77, 72, 0.25);
+  border-radius: 8px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.dv-demo-hero-search__input:focus {
+  outline: none;
+  border-color: var(--n8-orange);
+  box-shadow: 0 0 0 3px rgba(217, 105, 50, 0.25);
+}
+
+.dv-demo-hero-search__submit {
+  width: 100%;
+  padding: 0.85rem 1.25rem !important;
+  font-size: clamp(1.02rem, 1.35vw, 1.12rem) !important;
+  border-radius: 10px !important;
+}
+
+.dv-demo-hero-search__hint {
+  margin: 0.85rem 0 0;
+  font-size: clamp(0.88rem, 1.2vw, 0.95rem);
+  color: var(--n8-muted);
+  line-height: 1.45;
+}
+
+.dv-demo-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Trust */
+.dv-demo-trust-grid {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .dv-demo-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dv-demo-trust-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.dv-demo-trust-tile {
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.12);
+  border-radius: 10px;
+  padding: 1.25rem 1.2rem;
+  margin: 0;
+}
+
+.dv-demo-trust-tile__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  color: var(--n8-teal);
+}
+
+.dv-demo-trust-tile__body {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--n8-muted);
+}
+
+.dv-demo-boundary-note {
+  margin: 1.5rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--n8-muted);
+  max-width: 48rem;
+}
+
+/* Three columns */
+.dv-demo-three-col {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .dv-demo-three-col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dv-demo-col__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--n8-teal);
+}
+
+.dv-demo-col p {
+  margin: 0;
+  color: var(--n8-muted);
+}
+
+/* Steps — mobile: classic list; md+: three cards (matches “Who this is for” rhythm) */
+.dv-demo-steps {
+  margin: 1.25rem 0 0;
+  padding-left: 1.25rem;
+  max-width: 40rem;
+}
+
+.dv-demo-step {
+  margin-bottom: 0.65rem;
+  padding-left: 0.25rem;
+}
+
+.dv-demo-step__name {
+  color: var(--n8-teal);
+}
+
+@media (min-width: 768px) {
+  .dv-demo-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    max-width: none;
+    margin-top: 1.5rem;
+    padding-left: 0;
+    list-style: none;
+    counter-reset: dv-step;
+  }
+
+  .dv-demo-step {
+    margin: 0;
+    padding: 1.2rem 1.15rem 1.35rem;
+    background: #fff;
+    border: 1px solid rgba(90, 77, 72, 0.12);
+    border-radius: 10px;
+    border-top: 3px solid var(--n8-teal);
+    counter-increment: dv-step;
+  }
+
+  .dv-demo-step::before {
+    content: counter(dv-step);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin-bottom: 0.65rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #fff;
+    background: var(--n8-teal);
+    border-radius: 50%;
+    line-height: 1;
+  }
+}
+
+/* Topic tiles */
+.dv-demo-topic-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 600px) {
+  .dv-demo-topic-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .dv-demo-topic-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dv-demo-topic-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  justify-content: center;
+  padding: 1.35rem 1.35rem;
+  border-radius: 10px;
+  border: 2px solid rgba(90, 77, 72, 0.14);
+  background: #fff;
+  text-decoration: none !important;
+  color: var(--n8-text) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-height: 6.25rem;
+  box-sizing: border-box;
+}
+
+.dv-demo-topic-tile:hover {
+  border-color: var(--n8-orange);
+  box-shadow: 0 4px 16px rgba(217, 105, 50, 0.12);
+}
+
+.dv-demo-topic-tile:focus {
+  outline: none;
+}
+
+.dv-demo-topic-tile:focus-visible {
+  outline: 3px solid var(--n8-orange);
+  outline-offset: 2px;
+}
+
+.dv-demo-topic-tile__title {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.dv-demo-topic-tile__sub {
+  font-size: 0.95rem;
+  color: var(--n8-muted);
+}
+
+/* Explore by topic — off by default (see custom-homepage.html to re-enable) */
+.dv-demo-section--explore-off,
+section#explore-topics[hidden] {
+  display: none !important;
+}
+
+/* Featured + Recently added — 50 / 50 split on wide screens */
+.dv-demo-datasets-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.25rem 2.75rem;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .dv-demo-datasets-split {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 3rem;
+  }
+
+  /* Light vertical offset so the two columns feel staggered, not rigid */
+  .dv-demo-datasets-split__col--recent {
+    padding-top: 1.75rem;
+  }
+}
+
+.dv-demo-datasets-split__col .dv-demo-section-sub {
+  margin-bottom: 1rem;
+}
+
+.dv-demo-datasets-split__col .dv-demo-h2--sub {
+  margin-top: 0;
+}
+
+/* Single-column card stacks inside each half (override global multi-column card grid) */
+.dv-demo-datasets-split .dv-demo-card-grid {
+  grid-template-columns: 1fr;
+  margin-top: 0.35rem;
+}
+
+/* Dataset cards */
+.dv-demo-card-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 720px) {
+  .dv-demo-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .dv-demo-card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dv-demo-dataset-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.14);
+  border-radius: 10px;
+  padding: 1.2rem 1.15rem 1.35rem;
+  box-sizing: border-box;
+}
+
+.dv-demo-dataset-card--placeholder {
+  border-style: dashed;
+}
+
+.dv-demo-dataset-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.dv-demo-dataset-card__title a {
+  color: var(--n8-teal) !important;
+  text-decoration: none !important;
+}
+
+.dv-demo-dataset-card__title a:hover,
+.dv-demo-dataset-card__title a:focus {
+  text-decoration: underline !important;
+  color: var(--n8-orange) !important;
+}
+
+.dv-demo-dataset-card__authors,
+.dv-demo-dataset-card__meta {
+  font-size: 0.95rem;
+  color: var(--n8-muted) !important;
+  margin: 0 0 0.45rem;
+}
+
+.dv-demo-dataset-card__meta code {
+  color: var(--n8-teal) !important;
+  background: rgba(42, 89, 89, 0.1) !important;
+  font-size: 0.82em;
+}
+
+.dv-demo-dataset-card__pid {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+}
+
+.dv-demo-dataset-card__pid code {
+  background: rgba(90, 77, 72, 0.08);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.dv-demo-dataset-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.dv-demo-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(42, 89, 89, 0.1);
+  color: var(--n8-teal);
+}
+
+.dv-demo-dataset-card__stats {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--n8-muted);
+}
+
+.dv-demo-badge {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(217, 105, 50, 0.2);
+  color: #7a3812;
+  max-width: 8.5rem;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.dv-demo-cards-fallback {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--n8-muted);
+  font-size: 1.05rem;
+}
+
+/* Quote — band + panel so it matches trust/topic cards instead of floating text */
+.dv-demo-section--quote-band {
+  background: var(--dv-demo-section-alt-bg);
+  border-top: 1px solid rgba(90, 77, 72, 0.08);
+  border-bottom: 1px solid rgba(90, 77, 72, 0.08);
+}
+
+.dv-demo-quote--panel {
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.12);
+  border-radius: 12px;
+  padding: 1.65rem 1.5rem 1.55rem;
+  box-shadow: 0 4px 22px rgba(45, 42, 40, 0.06);
+  border-left: 4px solid var(--n8-orange);
+  max-width: 48rem;
+}
+
+.dv-demo-quote__body {
+  margin: 0;
+  padding: 0;
+  border: none;
+  max-width: 44rem;
+}
+
+.dv-demo-quote__body p {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.15vw, 1.4rem);
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--n8-text);
+}
+
+.dv-demo-quote__attr {
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--n8-muted);
+}
+
+.dv-demo-text-link {
+  color: var(--n8-teal) !important;
+  font-weight: 600;
+  text-decoration: underline !important;
+}
+
+.dv-demo-text-link:hover,
+.dv-demo-text-link:focus {
+  color: var(--n8-orange) !important;
+}
+
+/* Native nav handoff */
+.dv-demo-native-nav {
+  padding: var(--dv-demo-section-pad) 0 2rem;
+  border-top: 1px solid rgba(90, 77, 72, 0.12);
+  background: #fff;
+}
+
+.dv-demo-native-nav__title {
+  font-size: clamp(1.5rem, 2.75vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.4rem;
+  color: var(--n8-text);
+}
+
+.dv-demo-native-nav__sub {
+  margin: 0 0 1rem;
+  color: var(--n8-muted);
+  max-width: 40rem;
+  font-size: 1.0625rem;
+}
+
+.dv-demo-native-nav__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.dv-demo-native-nav__links a {
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--n8-teal) !important;
+  text-decoration: none !important;
+}
+
+.dv-demo-native-nav__links a:hover,
+.dv-demo-native-nav__links a:focus {
+  text-decoration: underline !important;
+  color: var(--n8-orange) !important;
+}
+
+/* Focus visibility (WCAG) */
+.dv-demo-home a:focus-visible,
+.dv-demo-home button:focus-visible {
+  outline: 3px solid var(--n8-orange);
+  outline-offset: 2px;
+}
+
+.dv-demo-btn:focus-visible {
+  outline: 3px solid #1a3d3d;
+  outline-offset: 2px;
+}
+
+/* ---------- Log in page (loginpage.xhtml) ----------
+   Same template as the rest of the app: custom header (script), navbar, stylesheet, footer.
+   These rules only apply when #login-container is present. */
+#login-container {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding-top: 0.35rem;
+  padding-bottom: 2rem;
+  padding-left: clamp(0.75rem, 2.5vw, 2rem);
+  padding-right: clamp(0.75rem, 2.5vw, 2rem);
+  box-sizing: border-box;
+}
+
+#login-container .col-md-12 > .col-md-offset-3 {
+  float: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  max-width: 32rem;
+  padding: 1.75rem 1.5rem 2rem;
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(45, 42, 40, 0.08);
+  border-top: 3px solid var(--dvu-primary);
+}
+
+#login-container h1 {
+  font-size: clamp(1.45rem, 3vw, 1.85rem);
+  font-weight: 700;
+  margin: 0 0 1.15rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(90, 77, 72, 0.12);
+  color: var(--n8-text);
+}
+
+#login-container h1 .glyphicon {
+  color: var(--dvu-primary);
+  margin-right: 0.35rem;
+}
+
+#login-container h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--n8-text);
+  margin-top: 1.35rem;
+  margin-bottom: 0.65rem;
+}
+
+#login-container .help-block,
+#login-container .help-block.small {
+  color: var(--n8-muted);
+}
+
+#login-container .control-label {
+  color: var(--n8-text);
+}
+
+#login-container .form-control:focus {
+  border-color: var(--dvu-primary);
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.22);
+}
+
+#login-container a:not(.btn):not(.ui-button) {
+  color: var(--n8-teal) !important;
+  font-weight: 600;
+}
+
+/* Builtin: Log in submit */
+#login-container #builtinProvider .button-block .btn,
+#login-container #builtinProvider .button-block .ui-button,
+#login-container #builtinProvider .button-block button {
+  min-width: 6.5rem;
+  padding: 0.55rem 1.2rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  background: var(--dvu-primary-dark) !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: var(--dvu-primary-dark) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+#login-container #builtinProvider .button-block .btn:hover,
+#login-container #builtinProvider .button-block .btn:focus,
+#login-container #builtinProvider .button-block .ui-button:hover,
+#login-container #builtinProvider .button-block .ui-button:focus,
+#login-container #builtinProvider .button-block button:hover,
+#login-container #builtinProvider .button-block button:focus {
+  background: var(--dvu-primary-hover) !important;
+  color: #fff !important;
+  border-color: var(--dvu-primary-hover) !important;
+}
+
+/* Shibboleth / OAuth primary */
+#login-container #remoteProvider a.btn.btn-default,
+#login-container .form-group .col-sm-12 > a.btn.btn-default,
+#login-container .form-group .col-sm-8 > a.btn.btn-default {
+  padding: 0.55rem 1.2rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  background: var(--dvu-primary-dark) !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: var(--dvu-primary-dark) !important;
+  text-shadow: none !important;
+}
+
+#login-container #remoteProvider a.btn.btn-default:hover,
+#login-container #remoteProvider a.btn.btn-default:focus,
+#login-container .form-group .col-sm-12 > a.btn.btn-default:hover,
+#login-container .form-group .col-sm-12 > a.btn.btn-default:focus,
+#login-container .form-group .col-sm-8 > a.btn.btn-default:hover,
+#login-container .form-group .col-sm-8 > a.btn.btn-default:focus {
+  background: var(--dvu-primary-hover) !important;
+  color: #fff !important;
+  border-color: var(--dvu-primary-hover) !important;
+}
+
+/* Switch auth provider (multiple providers) */
+#login-container #otherProviders .btn,
+#login-container #otherProviders a.ui-commandlink,
+#login-container #otherProviders .ui-commandlink {
+  margin: 0 0.35rem 0.5rem 0;
+  padding: 0.45rem 0.9rem !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  background-image: none !important;
+  color: var(--n8-teal) !important;
+  border: 2px solid var(--n8-teal) !important;
+  text-shadow: none !important;
+}
+
+#login-container #otherProviders .btn:hover,
+#login-container #otherProviders a.ui-commandlink:hover,
+#login-container #otherProviders .ui-commandlink:hover {
+  background: rgba(4, 120, 87, 0.08) !important;
+  color: var(--n8-teal) !important;
+}
+
+#login-container a:focus-visible,
+#login-container button:focus-visible {
+  outline: 3px solid var(--dvu-primary);
+  outline-offset: 2px;
+}
+
+/* Legacy helpers */
+.local-branding-homepage {
+  max-width: 42rem;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.local-branding-homepage-cta {
+  margin: 1.5rem 0;
+}
+
+.local-branding-btn {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background: var(--n8-orange);
+  color: #fff !important;
+  text-decoration: none !important;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.local-branding-btn:hover,
+.local-branding-btn:focus {
+  background: #c45a2a;
+  color: #fff !important;
+}
+
+.local-branding-homepage-note {
+  font-size: 0.85rem;
+  color: var(--n8-muted);
+}
+
+/* Offset fixed #navbarFixed so #content does not slide underneath (no top demo banner in header). */
+#dataverse-header-block {
+  padding-top: var(--dv-demo-navbar-offset) !important;
+}
+
+/* Dataverse: drop default #messagePanel .messagePanel { margin-top: 1em } gap above main content */
+#messagePanel .messagePanel,
+#messagePanel.messagePanel {
+  margin-top: 0 !important;
+}
+
+/* Cancel Bootstrap 3 .container > .navbar-header { margin: 0 -15px } — pulls logo/toggle past gutters */
+#navbarFixed.navbar .container > .navbar-header {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* --- Mobile collapsed navbar: inset logo + toggle from screen edges (< Bootstrap 768px) --- */
+@media (max-width: 767px) {
+  #navbarFixed.navbar > .container {
+    padding-left: max(1.35rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.35rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+/*
+ * --- Footer: swap “Powered by The Dataverse Project” image (.poweredbylogo) ---
+ * Stock markup uses /resources/images/dataverse_project_logo.svg (see dataverse_footer.xhtml).
+ * There is no installation setting for this asset. Options:
+ *
+ * A) CSS (below): put your SVG/PNG under branding/docroot/logos/navbar/ → URL /logos/navbar/…
+ *    Uncomment ONE of the two examples; tune width/max-height to your art.
+ *
+ * B) Fork / patch the Dataverse WAR and replace the file under resources/images/ (not ideal for Docker).
+ *
+ * If you only want sizing/colors, target #footer .poweredbylogo img without changing src.
+ */
+
+/* A1 — simplest (works in Chromium/WebKit/Firefox on <img> in current browsers):
+#footer .poweredbylogo img {
+  content: url("/logos/navbar/your-powered-by-logo.svg");
+  width: 140px !important;
+  height: auto !important;
+  max-height: 48px;
+  object-fit: contain;
+}
+*/
+
+/* A2 — if content: on img misbehaves: hide stock graphic, paint yours on the <a>
+#footer .poweredbylogo a {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+#footer .poweredbylogo img {
+  opacity: 0;
+  width: 140px;
+  height: 44px;
+}
+#footer .poweredbylogo a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/logos/navbar/your-powered-by-logo.svg") no-repeat center / contain;
+  pointer-events: none;
+}
+*/
