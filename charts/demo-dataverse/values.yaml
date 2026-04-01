@@ -218,7 +218,8 @@ solrInit:
   adminPassword: ""
   resources: {}
 
-# AWS S3 file storage for Dataverse (init.d copies mounted ~/.aws-style files; see charts/demo-dataverse/templates/deployment.yaml).
+# AWS S3 file storage: Secret mount + env (aws_bucket_name, …) plus bundled 006-s3-aws-storage.sh mounted at
+# /opt/payara/scripts/init.d/ (base image entrypoint runs that path before Payara starts). See ops/aws-s3-kubernetes-setup.md.
 awsS3:
   enabled: false
   # Name of a Secret you create out-of-band (keys = secretKeys below). Required when enabled.

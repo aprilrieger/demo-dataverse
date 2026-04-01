@@ -139,6 +139,10 @@ spec:
               readOnly: true
             {{- end }}
             {{- if .Values.awsS3.enabled }}
+            - name: init-d
+              mountPath: /opt/payara/scripts/init.d/006-s3-aws-storage.sh
+              subPath: 006-s3-aws-storage.sh
+              readOnly: true
             - name: aws-cli
               mountPath: /secrets/aws-cli/.aws
               readOnly: true
@@ -154,7 +158,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{ else }}{{ include "demo-dataverse.fullname" . }}-data{{ end }}
         {{- end }}
-        {{- if or .Values.configMap.enabled .Values.mail.enabled }}
+        {{- if or .Values.configMap.enabled .Values.mail.enabled .Values.awsS3.enabled }}
         - name: init-d
           configMap:
             name: {{ include "demo-dataverse.fullname" . }}-config

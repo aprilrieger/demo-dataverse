@@ -1,4 +1,4 @@
-{{- if or .Values.configMap.enabled .Values.mail.enabled }}
+{{- if or .Values.configMap.enabled .Values.mail.enabled .Values.awsS3.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -13,5 +13,10 @@ data:
   {{- $mailScript := .Files.Get "files/010-mailrelay-set.sh" | trim }}
   010-mailrelay-set.sh: |
 {{- $mailScript | nindent 4 }}
+  {{- end }}
+  {{- if .Values.awsS3.enabled }}
+  {{- $s3Script := .Files.Get "files/006-s3-aws-storage.sh" | trim }}
+  006-s3-aws-storage.sh: |
+{{- $s3Script | nindent 4 }}
   {{- end }}
 {{- end }}

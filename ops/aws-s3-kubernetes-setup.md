@@ -1,6 +1,8 @@
 # Manual setup: AWS S3 for Helm-deployed Dataverse
 
-This stack configures Dataverse’s S3 file store via `init.d/006-s3-aws-storage.sh`. That script runs only when **`aws_bucket_name`** is set and expects AWS CLI-style files under **`/secrets/aws-cli/.aws/`** (`credentials` and `config`). The Helm chart supplies those by mounting a Kubernetes **Secret** when **`awsS3.enabled`** is true.
+This stack configures Dataverse’s S3 file store via **`006-s3-aws-storage.sh`**, which the Helm chart embeds when **`awsS3.enabled`** is true and mounts at **`/opt/payara/scripts/init.d/006-s3-aws-storage.sh`**. That path is where the **`gdcc/dataverse` base image entrypoint** sources scripts **before** Payara starts (see [Base image — Entry & Extension Points](https://guides.dataverse.org/en/latest/container/base-image.html#base-entrypoint)). The script runs only when **`aws_bucket_name`** is set (the chart sets it from **`awsS3.bucketName`**) and expects AWS CLI-style files under **`/secrets/aws-cli/.aws/`** (`credentials` and `config`). The chart mounts your Kubernetes **Secret** there when **`awsS3.enabled`** is true.
+
+**Compose / custom mounts:** If you bind-mount this repo’s **`init.d/`** at **`/opt/payara/init.d`**, that alone does **not** run **`006`** on boot (the entrypoint uses **`/opt/payara/scripts/init.d/`**). Mount **`006-s3-aws-storage.sh`** into **`/opt/payara/scripts/init.d/`** (file bind-mount is fine) or copy the script there in a derived image.
 
 Use this checklist when deploying with values like `ops/besties-deploy.tmpl.yaml` (secret name **`aws-s3-credentials`**, bucket **`demo-dataverse`**, region endpoint **`https://s3.us-west-2.amazonaws.com`**). Adjust names, namespace, and region to match your environment.
 
@@ -147,15 +149,29 @@ Do **not** duplicate `aws_bucket_name`, `aws_endpoint_url`, or `aws_s3_profile` 
 
 ## 6. After deploy
 
-1. Confirm the Dataverse pod has the mount:
+1. Confirm the Dataverse pod has both mounts:
 
    ```bash
-   kubectl describe pod -n "$NAMESPACE" -l app.kubernetes.io/component=primary | rg -n "aws-cli|/secrets/aws-cli"
+   kubectl get pod -n "$NAMESPACE" -l app.kubernetes.io/component=primary -o jsonpath='{.items[0].metadata.name}' | xargs -I{} kubectl describe pod -n "$NAMESPACE" {}
    ```
 
-2. Check startup logs for Payara/Dataverse and for errors from S3 (permissions, wrong region, wrong bucket).
+   You should see **`/secrets/aws-cli/.aws`** (Secret volume) and **`/opt/payara/scripts/init.d/006-s3-aws-storage.sh`** (ConfigMap **`subPath`**).
 
-3. In the Dataverse UI, upload a small test file and confirm it lands in the bucket (S3 console or AWS CLI `aws s3 ls s3://your-bucket/`).
+2. In pod logs, the entrypoint should mention running the S3 script, e.g. `[Entrypoint] running /opt/payara/scripts/init.d/006-s3-aws-storage.sh` (exact wording may vary).
+
+3. Confirm JVM options were applied (optional): from a shell inside the pod, run Payara’s **`asadmin list-jvm-options`** with the admin credentials your image uses (defaults are documented in the [base image](https://guides.dataverse.org/en/latest/container/base-image.html)), and look for **`-Ddataverse.files.S3.`** and **`-Ddataverse.files.storage-driver-id`**. If you prefer not to use `asadmin`, rely on steps 2 and 4 plus absence of S3 **`AccessDenied`** errors in logs.
+
+4. **End-to-end:** In the Dataverse UI, upload a small test file, then list the bucket:
+
+   ```bash
+   aws s3 ls "s3://${BUCKET}/" --recursive | head
+   ```
+
+   You should see new object keys (paths depend on Dataverse version and dataset layout).
+
+5. **`:DownloadMethods`:** The script cannot call the Admin API during init (Payara is not up yet). If you need **`native/http`** downloads with S3 redirect, set **`DownloadMethods`** once after install (Admin → Settings or API) or leave your existing site default.
+
+6. Check startup logs for Payara/Dataverse for S3 or AWS SDK errors (wrong region, `AccessDenied`, wrong bucket name).
 
 ---
 
@@ -177,5 +193,5 @@ Do **not** duplicate `aws_bucket_name`, `aws_endpoint_url`, or `aws_s3_profile` 
 ## Reference
 
 - Dataverse S3 config (concepts): [Installation — S3 storage](https://guides.dataverse.org/en/latest/installation/config.html#s3-storage)
-- Chart wiring: `charts/demo-dataverse/templates/deployment.yaml` (`awsS3` env + volume mount)
-- Init script: `init.d/006-s3-aws-storage.sh`
+- Chart wiring: `charts/demo-dataverse/templates/deployment.yaml` (`awsS3` env + Secret mount + ConfigMap **`subPath`** for `006`)
+- Init script (chart copy): `charts/demo-dataverse/files/006-s3-aws-storage.sh` (kept in sync with `init.d/006-s3-aws-storage.sh` for Compose)

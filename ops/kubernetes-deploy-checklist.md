@@ -56,7 +56,7 @@ Create these **before** (or right after namespace exists) so the chart can mount
 
 | Secret / object | When needed | How |
 |-----------------|-------------|-----|
-| **`aws-s3-credentials`** | `awsS3.enabled: true` in values (e.g. besties) | Full walkthrough: **[`ops/aws-s3-kubernetes-setup.md`](aws-s3-kubernetes-setup.md)** (`kubectl create secret generic …`, keys `credentials` + `config`). |
+| **`aws-s3-credentials`** | `awsS3.enabled: true` in values (e.g. besties) | Full walkthrough: **[`ops/aws-s3-kubernetes-setup.md`](aws-s3-kubernetes-setup.md)** (`kubectl create secret generic …`, keys `credentials` + `config`). The chart mounts **`006-s3-aws-storage.sh`** at **`/opt/payara/scripts/init.d/`** so S3 JVM options are applied on boot (not only `aws_*` env vars). |
 | **`dataverse-admin-api-key`** (optional) | Only if you mount a superuser API token on the pod/Jobs | **[`ops/dataverse-admin-api-key-kubernetes.md`](dataverse-admin-api-key-kubernetes.md)** — chart does **not** require this for a basic deploy. |
 | **ConfigMap `dataverse-besties-solr-conf`** | **`solrInit`** is on for besties | **[`ops/solr-init-setup.md`](solr-init-setup.md)** — run **`ops/fetch-dataverse-solr-conf.sh`** (IQSS **`conf/solr`**, merge **8.11.2** **`_default`** resources, patch **`schema.xml`** + **`solrconfig.xml`** for Bitnami Solr **8.11**), then **`ops/create-solr-conf-configmap.sh`** on **`dv-solr-conf/`**. Solr admin creds: GitHub **`SOLR_ADMIN_*`** via envsubst. |
 
