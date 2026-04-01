@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# AWS S3 file store for Dataverse (Payara JVM options).
+# AWS S3 file store for Dataverse.
 # https://guides.dataverse.org/en/latest/installation/config.html#s3-storage
 #
-# Sourced by the base image entrypoint from /opt/payara/scripts/init.d/ before Payara starts.
-# Requires env: aws_bucket_name, aws_endpoint_url, aws_s3_profile (chart sets these when awsS3.enabled).
-# Requires volume: /secrets/aws-cli/.aws/{credentials,config} (chart mounts aws-cli Secret).
+# Sourced by the base image entrypoint from /opt/payara/scripts/init.d/ *before* Payara starts.
+# `asadmin create-jvm-options` cannot run here (DAS is not up on :4848). We append
+# `create-system-properties` lines to POSTBOOT_COMMANDS_FILE like init_2_configure.sh.
 #
-# Kubernetes (non-root): chart sets AWS_SHARED_CREDENTIALS_FILE / AWS_CONFIG_FILE → no copy.
-# Compose (often root): copy into ~/.aws when those vars are unset.
+# Requires env: aws_bucket_name, aws_endpoint_url, aws_s3_profile (chart sets these when awsS3.enabled).
+# Kubernetes: chart sets AWS_SHARED_CREDENTIALS_FILE / AWS_CONFIG_FILE (mounted Secret).
+# Compose (often root): copy credentials into ~/.aws when those vars are unset.
 
 if [ -n "${aws_bucket_name:-}" ]; then
     if [ -z "${AWS_SHARED_CREDENTIALS_FILE:-}" ] && [ -r /secrets/aws-cli/.aws/credentials ]; then
@@ -20,23 +21,38 @@ if [ -n "${aws_bucket_name:-}" ]; then
             cp -R /secrets/aws-cli/.aws/. "${_aws_dir}/"
         fi
     fi
-    # init_1_change_passwords.sh runs with `set -u` and does not define ADMIN_USER / PASSWORD_FILE.
-    # Official image uses PAYARA_ADMIN_USER / PAYARA_ADMIN_PASSWORD (see gdcc base image).
-    _dv_asadmin_user="${ADMIN_USER:-${PAYARA_ADMIN_USER:-admin}}"
-    _dv_asadmin_pwfile=$(mktemp)
-    trap 'rm -f "${_dv_asadmin_pwfile:-}"' EXIT
-    printf 'AS_ADMIN_PASSWORD=%s\n' "${PAYARA_ADMIN_PASSWORD:-admin}" >"$_dv_asadmin_pwfile"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.type\=s3"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.label\=S3"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.bucket-name\=${aws_bucket_name}"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.download-redirect\=true"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.url-expiration-minutes\=120"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.connection-pool-size\=4096"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.storage-driver-id\=S3"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.profile\=${aws_s3_profile}"
-    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.custom-endpoint-url\=${aws_endpoint_url}"
+
+    if [ -z "${POSTBOOT_COMMANDS_FILE:-}" ] || [ ! -w "$POSTBOOT_COMMANDS_FILE" ]; then
+        echo "006-s3-aws-storage: POSTBOOT_COMMANDS_FILE missing or not writable" >&2
+        return 1
+    fi
+
+    # init_2 already injected local file store + storage-driver-id=local; replace with S3 as primary.
+    # Strip any prior S3 lines too so pod restarts do not duplicate properties.
+    _pb_pre=$(mktemp)
+    _pb_dep=$(mktemp)
+    trap 'rm -f "${_pb_pre:-}" "${_pb_dep:-}"' EXIT
+    grep -v -E '^create-system-properties dataverse\.files\.local\.(type|label|directory)=' "$POSTBOOT_COMMANDS_FILE" \
+        | grep -v -E '^create-system-properties dataverse\.files\.storage-driver-id=' \
+        | grep -v -E '^create-system-properties dataverse\.files\.S3\.' \
+        | grep -v -E '^deploy ' > "$_pb_pre" || true
+    grep -E '^deploy ' "$POSTBOOT_COMMANDS_FILE" > "$_pb_dep" || true
+    _ep=$(printf '%s' "${aws_endpoint_url}" | sed -e 's/:/\\\:/g')
+    {
+        cat "$_pb_pre"
+        echo "create-system-properties dataverse.files.S3.type=s3"
+        echo "create-system-properties dataverse.files.S3.label=S3"
+        echo "create-system-properties dataverse.files.S3.bucket-name=${aws_bucket_name}"
+        echo "create-system-properties dataverse.files.S3.download-redirect=true"
+        echo "create-system-properties dataverse.files.S3.url-expiration-minutes=120"
+        echo "create-system-properties dataverse.files.S3.connection-pool-size=4096"
+        echo "create-system-properties dataverse.files.storage-driver-id=S3"
+        echo "create-system-properties dataverse.files.S3.profile=${aws_s3_profile}"
+        echo "create-system-properties dataverse.files.S3.custom-endpoint-url=${_ep}"
+        cat "$_pb_dep"
+    } > "$POSTBOOT_COMMANDS_FILE"
     trap - EXIT
-    rm -f "$_dv_asadmin_pwfile"
-    # Payara is not listening yet during init.d; set via Admin UI/API after first boot if needed.
+    rm -f "$_pb_pre" "$_pb_dep"
+    # Payara is not listening yet; set via Admin UI/API after first boot if needed.
     curl -sfS -m 2 -X PUT "http://127.0.0.1:8080/api/admin/settings/:DownloadMethods" -d "native/http" 2>/dev/null || true
 fi
