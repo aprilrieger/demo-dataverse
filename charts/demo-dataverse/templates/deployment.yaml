@@ -123,6 +123,11 @@ spec:
               value: {{ .Values.awsS3.bucketName | quote }}
             - name: aws_s3_profile
               value: {{ .Values.awsS3.profile | quote }}
+            # Non-root Payara user cannot write /root/.aws; SDK reads these paths (mounted Secret).
+            - name: AWS_SHARED_CREDENTIALS_FILE
+              value: /secrets/aws-cli/.aws/credentials
+            - name: AWS_CONFIG_FILE
+              value: /secrets/aws-cli/.aws/config
             {{- end }}
           {{- end }}
           resources:
