@@ -7,7 +7,7 @@
 # `asadmin create-jvm-options` cannot run here (DAS is not up on :4848). We append
 # `create-system-properties` lines to POSTBOOT_COMMANDS_FILE like init_2_configure.sh.
 #
-# Requires env: aws_bucket_name, aws_endpoint_url, aws_s3_profile (chart sets these when awsS3.enabled).
+# Requires env: aws_bucket_name, aws_endpoint_url, aws_s3_profile, aws_s3_region (chart sets these when awsS3.enabled).
 # Kubernetes: chart sets AWS_SHARED_CREDENTIALS_FILE / AWS_CONFIG_FILE (mounted Secret).
 # Compose (often root): copy credentials into ~/.aws when those vars are unset.
 
@@ -38,11 +38,15 @@ if [ -n "${aws_bucket_name:-}" ]; then
         | grep -v -E '^deploy ' > "$_pb_pre" || true
     grep -E '^deploy ' "$POSTBOOT_COMMANDS_FILE" > "$_pb_dep" || true
     _ep=$(printf '%s' "${aws_endpoint_url}" | sed -e 's/:/\\\:/g')
+    _s3_reg="${aws_s3_region:-${AWS_REGION:-}}"
     {
         cat "$_pb_pre"
         echo "create-system-properties dataverse.files.S3.type=s3"
         echo "create-system-properties dataverse.files.S3.label=S3"
         echo "create-system-properties dataverse.files.S3.bucket-name=${aws_bucket_name}"
+        if [ -n "${_s3_reg}" ]; then
+            echo "create-system-properties dataverse.files.S3.region=${_s3_reg}"
+        fi
         echo "create-system-properties dataverse.files.S3.download-redirect=true"
         echo "create-system-properties dataverse.files.S3.url-expiration-minutes=120"
         echo "create-system-properties dataverse.files.S3.connection-pool-size=4096"

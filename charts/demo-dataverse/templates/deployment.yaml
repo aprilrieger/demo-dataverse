@@ -123,6 +123,13 @@ spec:
               value: {{ .Values.awsS3.bucketName | quote }}
             - name: aws_s3_profile
               value: {{ .Values.awsS3.profile | quote }}
+            - name: aws_s3_region
+              value: {{ .Values.awsS3.region | quote }}
+            # Force correct SigV4 region (overrides a bad `region` line in the mounted config Secret).
+            - name: AWS_REGION
+              value: {{ .Values.awsS3.region | quote }}
+            - name: AWS_DEFAULT_REGION
+              value: {{ .Values.awsS3.region | quote }}
             # Non-root Payara user cannot write /root/.aws; SDK reads these paths (mounted Secret).
             - name: AWS_SHARED_CREDENTIALS_FILE
               value: /secrets/aws-cli/.aws/credentials

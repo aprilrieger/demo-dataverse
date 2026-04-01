@@ -226,6 +226,8 @@ awsS3:
   existingSecret: ""
   bucketName: "demo-dataverse"
   endpointUrl: "https://s3.us-west-2.amazonaws.com"
+  # AWS SigV4 signing region (e.g. us-west-2). Must match bucket/endpoint; NOT the app name. See ops/aws-s3-kubernetes-setup.md.
+  region: "us-west-2"
   # Must match the profile section in mounted .aws/credentials (e.g. [default]); override in values if needed.
   profile: default
   secretKeys:

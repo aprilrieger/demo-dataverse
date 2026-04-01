@@ -25,6 +25,7 @@ awsS3:
   existingSecret: "aws-s3-credentials"
   bucketName: "demo-dataverse"
   endpointUrl: "https://s3.us-west-2.amazonaws.com"
+  region: us-west-2
   # Must match the profile section in mounted .aws/credentials (e.g. [default]); override in values if needed.
   profile: default
   secretKeys:
