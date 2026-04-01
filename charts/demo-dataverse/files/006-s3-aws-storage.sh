@@ -20,15 +20,23 @@ if [ -n "${aws_bucket_name:-}" ]; then
             cp -R /secrets/aws-cli/.aws/. "${_aws_dir}/"
         fi
     fi
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.type\=s3"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.label\=S3"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.bucket-name\=${aws_bucket_name}"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.download-redirect\=true"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.url-expiration-minutes\=120"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.connection-pool-size\=4096"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.storage-driver-id\=S3"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.profile\=${aws_s3_profile}"
-    asadmin --user="${ADMIN_USER}" --passwordfile="${PASSWORD_FILE}" create-jvm-options "-Ddataverse.files.S3.custom-endpoint-url\=${aws_endpoint_url}"
+    # init_1_change_passwords.sh runs with `set -u` and does not define ADMIN_USER / PASSWORD_FILE.
+    # Official image uses PAYARA_ADMIN_USER / PAYARA_ADMIN_PASSWORD (see gdcc base image).
+    _dv_asadmin_user="${ADMIN_USER:-${PAYARA_ADMIN_USER:-admin}}"
+    _dv_asadmin_pwfile=$(mktemp)
+    trap 'rm -f "${_dv_asadmin_pwfile:-}"' EXIT
+    printf 'AS_ADMIN_PASSWORD=%s\n' "${PAYARA_ADMIN_PASSWORD:-admin}" >"$_dv_asadmin_pwfile"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.type\=s3"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.label\=S3"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.bucket-name\=${aws_bucket_name}"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.download-redirect\=true"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.url-expiration-minutes\=120"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.connection-pool-size\=4096"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.storage-driver-id\=S3"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.profile\=${aws_s3_profile}"
+    asadmin --user="$_dv_asadmin_user" --passwordfile="$_dv_asadmin_pwfile" create-jvm-options "-Ddataverse.files.S3.custom-endpoint-url\=${aws_endpoint_url}"
+    trap - EXIT
+    rm -f "$_dv_asadmin_pwfile"
     # Payara is not listening yet during init.d; set via Admin UI/API after first boot if needed.
     curl -sfS -m 2 -X PUT "http://127.0.0.1:8080/api/admin/settings/:DownloadMethods" -d "native/http" 2>/dev/null || true
 fi
