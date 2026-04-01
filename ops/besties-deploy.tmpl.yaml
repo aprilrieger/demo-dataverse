@@ -52,6 +52,10 @@ resources:
     memory: 2Gi
     cpu: 100m
 
+# Payara runs as uid 1000; fsGroup lets RWO volumes stay writable for /data and /dv/docroot.
+podSecurityContext:
+  fsGroup: 1000
+
 # RWO PVC for Dataverse /data — correct for replicaCount: 1. GDCC K8s guide: use ReadWriteMany for /data (and
 # docroot) only for multi-instance Payara; with S3 (besties awsS3) local /data is partly temp/ingest. See
 # https://k8s-docs.gdcc.io/en/latest/day1/storage.html#application-server
@@ -61,6 +65,16 @@ persistence:
   size: 20Gi
   accessMode: ReadWriteOnce
   storageClassName: ""
+
+# Branding / docroot (legacy dataverse-k8s pattern: separate "docroot" PVC). gdcc/dataverse serves /logos/* from
+# DATAVERSE_FILES_DOCROOT → mount at /dv/docroot. Chart creates <release>-docroot or set existingClaim.
+docrootPersistence:
+  enabled: true
+  mountPath: /dv/docroot
+  size: 6Gi
+  accessMode: ReadWriteOnce
+  storageClassName: ""
+  existingClaim: ""
 
 ingress:
   enabled: true

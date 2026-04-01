@@ -126,6 +126,18 @@ persistence:
   storageClassName: ""
   existingClaim: ""
 
+# Optional second PVC for DATAVERSE_FILES_DOCROOT (gdcc image default: /dv/docroot). Same pattern as legacy
+# dataverse-k8s "docroot" volume, but correct path for gdcc/dataverse — /logos/*, theme uploads, branding.
+# https://guides.dataverse.org/en/latest/container/app-image.html#locations
+# With RWO EBS, set podSecurityContext.fsGroup: 1000 so user payara can write the volume.
+docrootPersistence:
+  enabled: false
+  mountPath: /dv/docroot
+  size: 6Gi
+  accessMode: ReadWriteOnce
+  storageClassName: ""
+  existingClaim: ""
+
 # Optional ConfigMap created by this chart; keys become filenames under mountPath (e.g. init scripts).
 configMap:
   enabled: false

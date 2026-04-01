@@ -1,0 +1,18 @@
+{{- if and .Values.docrootPersistence.enabled (not .Values.docrootPersistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "demo-dataverse.fullname" . }}-docroot
+  labels:
+    {{- include "demo-dataverse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docroot
+spec:
+  accessModes:
+    - {{ .Values.docrootPersistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.docrootPersistence.size | quote }}
+  {{- with .Values.docrootPersistence.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+{{- end }}

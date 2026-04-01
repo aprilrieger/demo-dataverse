@@ -139,11 +139,15 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if or .Values.persistence.enabled .Values.configMap.enabled .Values.mail.enabled .Values.awsS3.enabled .Values.volumeMounts }}
+          {{- if or .Values.persistence.enabled .Values.docrootPersistence.enabled .Values.configMap.enabled .Values.mail.enabled .Values.awsS3.enabled .Values.volumeMounts }}
           volumeMounts:
             {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
+            {{- end }}
+            {{- if .Values.docrootPersistence.enabled }}
+            - name: docroot
+              mountPath: {{ .Values.docrootPersistence.mountPath }}
             {{- end }}
             {{- if or .Values.configMap.enabled .Values.mail.enabled }}
             - name: init-d
@@ -163,12 +167,17 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- end }}
-      {{- if or .Values.persistence.enabled .Values.configMap.enabled .Values.mail.enabled .Values.awsS3.enabled .Values.volumes .Values.solrInit.enabled }}
+      {{- if or .Values.persistence.enabled .Values.docrootPersistence.enabled .Values.configMap.enabled .Values.mail.enabled .Values.awsS3.enabled .Values.volumes .Values.solrInit.enabled }}
       volumes:
         {{- if .Values.persistence.enabled }}
         - name: data
           persistentVolumeClaim:
             claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{ else }}{{ include "demo-dataverse.fullname" . }}-data{{ end }}
+        {{- end }}
+        {{- if .Values.docrootPersistence.enabled }}
+        - name: docroot
+          persistentVolumeClaim:
+            claimName: {{ if .Values.docrootPersistence.existingClaim }}{{ .Values.docrootPersistence.existingClaim }}{{ else }}{{ include "demo-dataverse.fullname" . }}-docroot{{ end }}
         {{- end }}
         {{- if or .Values.configMap.enabled .Values.mail.enabled .Values.awsS3.enabled }}
         - name: init-d
