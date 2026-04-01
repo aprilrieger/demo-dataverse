@@ -5,7 +5,7 @@
 :root {
   --n8-text: #5a4d48;
   --n8-orange: #d96932;
-  --n8-teal: #2a5959;
+  --n8-teal: #047857;
   --n8-bg: #ffffff;
   --n8-muted: rgba(90, 77, 72, 0.75);
   --n8-splash-bg-image: url("/logos/navbar/splash-hero.png");
@@ -14,8 +14,8 @@
   /* Navbar row sizing (define before --dv-demo-navbar-offset, which references these) */
   --dv-demo-nav-container-pad-y: 10px;
   --dv-demo-nav-border-below: 3px; /* matches #navbarFixed.navbar border-bottom width */
-  --dv-demo-nav-chrome-height: 76px;
-  --dv-demo-nav-chrome-max: 76px;
+  --dv-demo-nav-chrome-height: 58px;
+  --dv-demo-nav-chrome-max: 58px;
   --dv-demo-nav-control-height: 40px;
   /* Total fixed navbar height (viewport) — chrome + vertical padding + bottom border */
   --dv-demo-navbar-offset: calc(
@@ -26,6 +26,11 @@
   --dv-demo-section-pad: clamp(2.5rem, 5vw, 4rem);
   /* Alternating homepage section bands (#trust, #featured, etc.) */
   --dv-demo-section-alt-bg: #f8f8f8;
+
+  /* DataverseUp + site-wide primary (teal #427898) */
+  --dvu-primary: #427898;
+  --dvu-primary-hover: #3a9ca6;
+  --dvu-primary-dark: #236b72;
 }
 
 @media (max-width: 767px) {
@@ -101,7 +106,9 @@
 /* Dataverse main slot is #content.container (Bootstrap: ~1170px cap + 15px gutters).
    That stacks with our inner max-width and feels “double margined.” Break out to full width
    for the custom homepage and login body only. */
-#content.container:has(> .dv-demo-home),
+/* Use :has(.dv-demo-home) not :has(> …): Dataverse may wrap the custom homepage in an extra node. */
+#content.container:has(.dv-demo-home),
+#content.container:has(.dvup-homepage),
 #content.container:has(> #login-container) {
   max-width: none;
   width: 100%;
@@ -138,12 +145,357 @@
   font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
 }
 
+#content.container .dvup-homepage,
+#content.container .dvup-homepage h1,
+#content.container .dvup-homepage h2,
+#content.container .dvup-homepage h3,
+#content.container .dvup-homepage h4,
+#content.container .dvup-homepage p,
+#content.container .dvup-homepage li,
+#content.container .dvup-homepage label,
+#content.container .dvup-homepage strong,
+#content.container .dvup-homepage input,
+#content.container .dvup-homepage textarea,
+#content.container .dvup-homepage button {
+  font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* --------------------------------------------------------------------------
+   Bootstrap 3 — remove gradients; align .btn with --dvu-primary (loads before this file)
+   -------------------------------------------------------------------------- */
+.btn-primary {
+  background-color: var(--dvu-primary-dark) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-dark) !important;
+  color: #fff !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.open > .dropdown-toggle.btn-primary {
+  background-color: var(--dvu-primary-hover) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-hover) !important;
+  color: #fff !important;
+}
+
+.btn-default {
+  background-color: #fff !important;
+  background-image: none !important;
+  border: 2px solid var(--dvu-primary) !important;
+  color: var(--dvu-primary) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.btn-default:hover,
+.btn-default:focus {
+  background-color: rgba(44, 138, 146, 0.09) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-hover) !important;
+  color: var(--dvu-primary-hover) !important;
+}
+
+.btn-default:active,
+.btn-default.active,
+.open > .dropdown-toggle.btn-default {
+  background-color: rgba(44, 138, 146, 0.16) !important;
+  background-image: none !important;
+  border-color: var(--dvu-primary-dark) !important;
+  color: var(--dvu-primary-dark) !important;
+}
+
+/* ==========================================================================
+   DataverseUp marketing homepage (.dvup-*)
+   ========================================================================== */
+
+.dvup-homepage {
+  color: var(--n8-text);
+  font-size: 1.0625rem;
+  line-height: 1.58;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+.dvup-page-shell {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.dvup-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding-left: 15px;
+  padding-right: 15px;
+  box-sizing: border-box;
+}
+
+.dvup-section {
+  padding: clamp(3rem, 6vw, 4rem) 0;
+}
+
+.dvup-section--alt {
+  background: #f8f8f8;
+  border-top: 1px solid rgba(90, 77, 72, 0.08);
+  border-bottom: 1px solid rgba(90, 77, 72, 0.08);
+}
+
+.dvup-section--white {
+  background: #fff;
+}
+
+.dvup-section-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.dvup-eyebrow {
+  color: var(--dvu-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 0.75rem;
+}
+
+.dvup-h1 {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 1rem;
+  color: var(--n8-text);
+}
+
+.dvup-h2 {
+  font-size: clamp(1.65rem, 3vw, 2.125rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.85rem;
+  color: var(--n8-text);
+}
+
+.dvup-h3,
+.dvup-card__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--n8-text);
+}
+
+.dvup-lead {
+  color: var(--n8-muted);
+  font-size: 1.1rem;
+  line-height: 1.65;
+  max-width: 42rem;
+  margin: 0 0 1.5rem;
+}
+
+.dvup-body {
+  color: var(--n8-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.dvup-text-center {
+  text-align: center;
+}
+
+.dvup-text-center .dvup-lead {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dvup-hero {
+  background: linear-gradient(180deg, #fff 0%, #f9fafb 100%);
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px solid rgba(90, 77, 72, 0.1);
+}
+
+.dvup-hero__grid {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+}
+
+.dvup-hero__copy,
+.dvup-hero__media {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.dvup-hero__copy {
+  width: 56%;
+  padding-right: 2rem;
+}
+
+.dvup-hero__media {
+  width: 44%;
+  text-align: right;
+}
+
+.dvup-hero__logo {
+  max-width: 100%;
+  height: auto;
+  max-height: 180px;
+}
+
+.dvup-hero__actions {
+  margin-top: 1.5rem;
+}
+
+.dvup-hero__actions .btn {
+  margin-right: 0.65rem;
+  margin-bottom: 0.65rem;
+  min-width: 8.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.dvup-hero__note {
+  margin: 1.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--n8-muted);
+}
+
+.dvup-card-grid {
+  margin-top: 2rem;
+}
+
+.dvup-card {
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
+  height: 100%;
+  margin-bottom: 1rem;
+}
+
+.dvup-card__body {
+  padding: 1.5rem;
+}
+
+.dvup-card__step {
+  display: inline-block;
+  background: var(--dvu-primary-dark);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+
+.dvup-card__text {
+  color: var(--n8-muted);
+  font-size: 0.98rem;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.dvup-form-panel {
+  background: #fff;
+  border: 1px solid rgba(90, 77, 72, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.06);
+  padding: 1.75rem;
+}
+
+.dvup-form-panel .form-group {
+  margin-bottom: 1rem;
+}
+
+.dvup-form-panel label {
+  font-weight: 600;
+  color: var(--n8-text);
+}
+
+.dvup-form-panel .form-control:focus {
+  border-color: var(--dvu-primary);
+  box-shadow: 0 0 0 2px rgba(44, 138, 146, 0.2);
+}
+
+.dvup-pill-links {
+  margin-top: 1.5rem;
+}
+
+.dvup-pill-link {
+  display: inline-block;
+  margin: 0 0.5rem 0.75rem 0;
+  padding: 0.65rem 1.25rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 2px solid var(--dvu-primary);
+  color: var(--dvu-primary) !important;
+  background: #fff;
+  text-decoration: none !important;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.dvup-pill-link:hover,
+.dvup-pill-link:focus {
+  background: rgba(44, 138, 146, 0.09);
+  border-color: var(--dvu-primary-hover);
+  color: var(--dvu-primary-hover) !important;
+}
+
+.dvup-footer {
+  padding: 2rem 0 2.5rem;
+  border-top: 1px solid rgba(90, 77, 72, 0.1);
+  background: #fff;
+}
+
+.dvup-footer__small {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--n8-muted);
+}
+
+@media (max-width: 991px) {
+  .dvup-hero__grid,
+  .dvup-hero__copy,
+  .dvup-hero__media {
+    display: block;
+    width: 100%;
+  }
+
+  .dvup-hero__copy {
+    padding-right: 0;
+    margin-bottom: 1.75rem;
+  }
+
+  .dvup-hero__media {
+    text-align: left;
+  }
+
+  .dvup-hero__logo {
+    max-height: 140px;
+  }
+}
+
+@media (max-width: 767px) {
+  .dvup-hero__actions .btn {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
 /* Navbar: same type + weight as body sections (still Dataverse chrome, not the custom homepage root) */
 #navbarFixed.navbar {
   font-family: "Outfit", ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
   background: #fff !important;
-  /* Orange strip under white bar */
-  border-bottom: 3px solid var(--n8-orange) !important;
+  /* Accent strip — same teal (#427898) as primary actions */
+  border-bottom: 3px solid var(--dvu-primary) !important;
 }
 
 /* Desktop: one horizontal row — logo, links, search, Get Support share vertical center (Bootstrap 3 float → flex) */
@@ -434,24 +786,22 @@
   min-height: var(--dv-demo-nav-chrome-max);
 }
 
-/* Logo PNG — 480×150 (3.2∶1); cap matches nav chrome so the bar is one tight band */
-#navbarFixed.navbar img.navbar-brand.custom-logo {
+/* Logo PNG — img carries .navbar-brand.custom-logo (dataverse_header.xhtml) */
+#navbarFixed .navbar-brand.custom-logo {
   display: block !important;
-  box-sizing: border-box !important;
+  box-sizing: content-box !important;
   width: auto !important;
-  height: auto !important;
-  max-height: var(--dv-demo-nav-chrome-max) !important;
+  height: 40px !important;
   max-width: min(192px, calc(100vw - 8rem)) !important;
   object-fit: contain !important;
   object-position: left center !important;
-  padding: 0 !important;
+  padding: 5px !important;
   margin: 0 !important;
   line-height: 0 !important;
 }
 
 @media (max-width: 767px) {
-  #navbarFixed.navbar img.navbar-brand.custom-logo {
-    max-height: var(--dv-demo-nav-chrome-max) !important;
+  #navbarFixed .navbar-brand.custom-logo {
     max-width: min(160px, calc(100vw - 5.5rem)) !important;
   }
 }
@@ -545,8 +895,8 @@
  * block + 15px padding then starts copy too far left vs #navbarFixed > .container (logo uses the
  * same inset as Bootstrap’s .container). Mirror that inset explicitly (750 / 970 / 1170 breakpoints).
  */
-#content.container:has(> .dv-demo-home) .dv-demo-hero__inner,
-#content.container:has(> .dv-demo-home) .dv-demo-section-inner {
+#content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+#content.container:has(.dv-demo-home) .dv-demo-section-inner {
   max-width: none;
   width: 100%;
   margin-left: 0;
@@ -555,32 +905,32 @@
 }
 
 @media (min-width: 768px) {
-  #content.container:has(> .dv-demo-home) .dv-demo-hero__inner,
-  #content.container:has(> .dv-demo-home) .dv-demo-section-inner {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
     padding-left: max(15px, calc((100% - 750px) / 2 + 15px));
     padding-right: max(15px, calc((100% - 750px) / 2 + 15px));
   }
 }
 
 @media (min-width: 992px) {
-  #content.container:has(> .dv-demo-home) .dv-demo-hero__inner,
-  #content.container:has(> .dv-demo-home) .dv-demo-section-inner {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
     padding-left: max(15px, calc((100% - 970px) / 2 + 15px));
     padding-right: max(15px, calc((100% - 970px) / 2 + 15px));
   }
 }
 
 @media (min-width: 1200px) {
-  #content.container:has(> .dv-demo-home) .dv-demo-hero__inner,
-  #content.container:has(> .dv-demo-home) .dv-demo-section-inner {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
     padding-left: max(15px, calc((100% - 1170px) / 2 + 15px));
     padding-right: max(15px, calc((100% - 1170px) / 2 + 15px));
   }
 }
 
 @media (max-width: 767px) {
-  #content.container:has(> .dv-demo-home) .dv-demo-hero__inner,
-  #content.container:has(> .dv-demo-home) .dv-demo-section-inner {
+  #content.container:has(.dv-demo-home) .dv-demo-hero__inner,
+  #content.container:has(.dv-demo-home) .dv-demo-section-inner {
     padding-left: max(var(--dv-demo-container-gutter), 1.35rem, env(safe-area-inset-left, 0px));
     padding-right: max(var(--dv-demo-container-gutter), 1.35rem, env(safe-area-inset-right, 0px));
   }
@@ -699,13 +1049,12 @@
 }
 
 /*
- * Condensed homepage hero (100vh): fill the band with splash art — cover keeps the image visible on wide
- * screens; right center keeps shapes on the copy’s safe side.
+ * Condensed homepage: splash is painted on the <section> (below), not only on .dv-demo-hero__bg.
+ * Some Dataverse layouts left the bg div with no reliable height, so you saw a solid white band
+ * even when /logos/navbar/splash-hero.png returned 200.
  */
 .dv-demo-hero--condensed .dv-demo-hero__bg {
-  min-height: 100%;
-  background-size: cover;
-  background-position: right center;
+  display: none !important;
 }
 
 /* Same cell as bg: stacked over background */
@@ -732,6 +1081,7 @@
   align-self: center;
   padding-top: clamp(1.25rem, 4vw, 3rem);
   padding-bottom: clamp(1.25rem, 4vw, 3rem);
+  background: transparent !important;
 }
 
 .dv-demo-hero__grid {
@@ -750,9 +1100,14 @@
   }
 }
 
-/* Condensed hero — one column, ROI-first (navbar already has search); full viewport band */
+/* Condensed hero — one column, ROI-first (navbar already has search); full viewport band + splash */
 .dv-demo-hero--condensed {
   min-height: 100vh;
+  background-color: var(--n8-bg);
+  background-image: var(--n8-splash-bg-image);
+  background-size: cover;
+  background-position: right center;
+  background-repeat: no-repeat;
 }
 
 @supports (height: 100dvh) {
@@ -1547,7 +1902,7 @@ section#explore-topics[hidden] {
   border: 1px solid rgba(90, 77, 72, 0.14);
   border-radius: 12px;
   box-shadow: 0 8px 28px rgba(45, 42, 40, 0.08);
-  border-top: 3px solid var(--n8-orange);
+  border-top: 3px solid var(--dvu-primary);
 }
 
 #login-container h1 {
@@ -1560,7 +1915,7 @@ section#explore-topics[hidden] {
 }
 
 #login-container h1 .glyphicon {
-  color: var(--n8-orange);
+  color: var(--dvu-primary);
   margin-right: 0.35rem;
 }
 
@@ -1582,8 +1937,8 @@ section#explore-topics[hidden] {
 }
 
 #login-container .form-control:focus {
-  border-color: var(--n8-orange);
-  box-shadow: 0 0 0 2px rgba(217, 105, 50, 0.22);
+  border-color: var(--dvu-primary);
+  box-shadow: 0 0 0 2px rgba(44, 138, 146, 0.22);
 }
 
 #login-container a:not(.btn):not(.ui-button) {
@@ -1599,10 +1954,10 @@ section#explore-topics[hidden] {
   padding: 0.55rem 1.2rem !important;
   font-weight: 600 !important;
   border-radius: 8px !important;
-  background: var(--n8-orange) !important;
+  background: var(--dvu-primary-dark) !important;
   background-image: none !important;
   color: #fff !important;
-  border-color: #c45a2a !important;
+  border-color: var(--dvu-primary-dark) !important;
   text-shadow: none !important;
   box-shadow: none !important;
 }
@@ -1613,9 +1968,9 @@ section#explore-topics[hidden] {
 #login-container #builtinProvider .button-block .ui-button:focus,
 #login-container #builtinProvider .button-block button:hover,
 #login-container #builtinProvider .button-block button:focus {
-  background: #c45a2a !important;
+  background: var(--dvu-primary-hover) !important;
   color: #fff !important;
-  border-color: #b04e24 !important;
+  border-color: var(--dvu-primary-hover) !important;
 }
 
 /* Shibboleth / OAuth primary */
@@ -1625,10 +1980,10 @@ section#explore-topics[hidden] {
   padding: 0.55rem 1.2rem !important;
   font-weight: 600 !important;
   border-radius: 8px !important;
-  background: var(--n8-orange) !important;
+  background: var(--dvu-primary-dark) !important;
   background-image: none !important;
   color: #fff !important;
-  border-color: #c45a2a !important;
+  border-color: var(--dvu-primary-dark) !important;
   text-shadow: none !important;
 }
 
@@ -1638,8 +1993,9 @@ section#explore-topics[hidden] {
 #login-container .form-group .col-sm-12 > a.btn.btn-default:focus,
 #login-container .form-group .col-sm-8 > a.btn.btn-default:hover,
 #login-container .form-group .col-sm-8 > a.btn.btn-default:focus {
-  background: #c45a2a !important;
+  background: var(--dvu-primary-hover) !important;
   color: #fff !important;
+  border-color: var(--dvu-primary-hover) !important;
 }
 
 /* Switch auth provider (multiple providers) */
@@ -1660,13 +2016,13 @@ section#explore-topics[hidden] {
 #login-container #otherProviders .btn:hover,
 #login-container #otherProviders a.ui-commandlink:hover,
 #login-container #otherProviders .ui-commandlink:hover {
-  background: rgba(42, 89, 89, 0.08) !important;
+  background: rgba(44, 138, 146, 0.08) !important;
   color: var(--n8-teal) !important;
 }
 
 #login-container a:focus-visible,
 #login-container button:focus-visible {
-  outline: 3px solid var(--n8-orange);
+  outline: 3px solid var(--dvu-primary);
   outline-offset: 2px;
 }
 
@@ -1726,3 +2082,46 @@ section#explore-topics[hidden] {
     padding-right: max(1.35rem, env(safe-area-inset-right, 0px));
   }
 }
+
+/*
+ * --- Footer: swap “Powered by The Dataverse Project” image (.poweredbylogo) ---
+ * Stock markup uses /resources/images/dataverse_project_logo.svg (see dataverse_footer.xhtml).
+ * There is no installation setting for this asset. Options:
+ *
+ * A) CSS (below): put your SVG/PNG under branding/docroot/logos/navbar/ → URL /logos/navbar/…
+ *    Uncomment ONE of the two examples; tune width/max-height to your art.
+ *
+ * B) Fork / patch the Dataverse WAR and replace the file under resources/images/ (not ideal for Docker).
+ *
+ * If you only want sizing/colors, target #footer .poweredbylogo img without changing src.
+ */
+
+/* A1 — simplest (works in Chromium/WebKit/Firefox on <img> in current browsers):
+#footer .poweredbylogo img {
+  content: url("/logos/navbar/your-powered-by-logo.svg");
+  width: 140px !important;
+  height: auto !important;
+  max-height: 48px;
+  object-fit: contain;
+}
+*/
+
+/* A2 — if content: on img misbehaves: hide stock graphic, paint yours on the <a>
+#footer .poweredbylogo a {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+#footer .poweredbylogo img {
+  opacity: 0;
+  width: 140px;
+  height: 44px;
+}
+#footer .poweredbylogo a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/logos/navbar/your-powered-by-logo.svg") no-repeat center / contain;
+  pointer-events: none;
+}
+*/
