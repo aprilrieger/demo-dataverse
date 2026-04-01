@@ -27,13 +27,13 @@ if [ -n "${aws_bucket_name:-}" ]; then
         return 1
     fi
 
-    # init_2 already injected local file store + storage-driver-id=local; replace with S3 as primary.
-    # Strip any prior S3 lines too so pod restarts do not duplicate properties.
+    # Keep dataverse.files.local.* so the "local" driver stays registered for existing DB rows that still
+    # reference that storage identifier. Set default uploads to S3 via storage-driver-id=S3 only.
+    # Strip prior S3.* and storage-driver-id lines so pod restarts do not duplicate properties.
     _pb_pre=$(mktemp)
     _pb_dep=$(mktemp)
     trap 'rm -f "${_pb_pre:-}" "${_pb_dep:-}"' EXIT
-    grep -v -E '^create-system-properties dataverse\.files\.local\.(type|label|directory)=' "$POSTBOOT_COMMANDS_FILE" \
-        | grep -v -E '^create-system-properties dataverse\.files\.storage-driver-id=' \
+    grep -v -E '^create-system-properties dataverse\.files\.storage-driver-id=' "$POSTBOOT_COMMANDS_FILE" \
         | grep -v -E '^create-system-properties dataverse\.files\.S3\.' \
         | grep -v -E '^deploy ' > "$_pb_pre" || true
     grep -E '^deploy ' "$POSTBOOT_COMMANDS_FILE" > "$_pb_dep" || true
