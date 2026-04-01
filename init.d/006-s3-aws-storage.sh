@@ -38,21 +38,25 @@ if [ -n "${aws_bucket_name:-}" ]; then
         | grep -v -E '^deploy ' > "$_pb_pre" || true
     grep -E '^deploy ' "$POSTBOOT_COMMANDS_FILE" > "$_pb_dep" || true
     _ep=$(printf '%s' "${aws_endpoint_url}" | sed -e 's/:/\\\:/g')
+    # With custom-endpoint-url set, Dataverse's S3AccessIO uses JVM key custom-endpoint-region for SigV4.
+    # If unset, upstream defaults to the literal string "dataverse" → S3 400 "region 'dataverse' is wrong".
     _s3_reg="${aws_s3_region:-${AWS_REGION:-}}"
+    if [ -z "${_s3_reg}" ]; then
+        echo "006-s3-aws-storage: set aws_s3_region (Helm awsS3.region) or AWS_REGION when using custom-endpoint-url" >&2
+        return 1
+    fi
     {
         cat "$_pb_pre"
         echo "create-system-properties dataverse.files.S3.type=s3"
         echo "create-system-properties dataverse.files.S3.label=S3"
         echo "create-system-properties dataverse.files.S3.bucket-name=${aws_bucket_name}"
-        if [ -n "${_s3_reg}" ]; then
-            echo "create-system-properties dataverse.files.S3.region=${_s3_reg}"
-        fi
         echo "create-system-properties dataverse.files.S3.download-redirect=true"
         echo "create-system-properties dataverse.files.S3.url-expiration-minutes=120"
         echo "create-system-properties dataverse.files.S3.connection-pool-size=4096"
         echo "create-system-properties dataverse.files.storage-driver-id=S3"
         echo "create-system-properties dataverse.files.S3.profile=${aws_s3_profile}"
         echo "create-system-properties dataverse.files.S3.custom-endpoint-url=${_ep}"
+        echo "create-system-properties dataverse.files.S3.custom-endpoint-region=${_s3_reg}"
         cat "$_pb_dep"
     } > "$POSTBOOT_COMMANDS_FILE"
     trap - EXIT
